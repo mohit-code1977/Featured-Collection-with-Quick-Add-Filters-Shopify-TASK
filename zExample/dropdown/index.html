@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .filter-dropdown {
+            position: relative;
+            width: 250px;
+            margin: 50px;
+        }
+
+        .dropdown-btn {
+            width: 100%;
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: left;
+        }
+
+        .dropdown-btn:hover {
+            border-color: #999;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-dropdown.open .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .dropdown-menu li {
+            padding: 6px 0;
+        }
+
+        .dropdown-menu label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .dropdown-menu input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Selected show karo */
+        .selected-show {
+            margin: 50px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== SIMPLE DROPDOWN ===== -->
+    <div class="filter-dropdown">
+
+        <!-- Button -->
+        <button class="dropdown-btn">
+            Categories ▼
+        </button>
+
+        <!-- Menu -->
+        <div class="dropdown-menu">
+            <ul>
+                <li>
+                    <label>
+                        <input type="checkbox" value="furniture">
+                        Furniture
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox" value="lighting">
+                        Lighting
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox" value="decor">
+                        Decor
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox" value="electronics">
+                        Electronics
+                    </label>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Selected categories dikhao -->
+    <div class="selected-show">
+        <strong>Selected Categories:</strong> <span id="selected-display">None</span>
+    </div>
+
+    <script>
+        // ===== SIMPLE JAVASCRIPT =====
+
+        const btn = document.querySelector('.dropdown-btn');
+        const dropdown = document.querySelector('.filter-dropdown');
+
+        // Button click - Open/Close
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+        });
+
+        // Bahar click - Close
+        document.addEventListener('click', function () {
+            dropdown.classList.remove('open');  
+        });
+
+        // Checkbox change - Filter apply
+        document.querySelectorAll('.dropdown-menu input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function () {
+                // Selected categories collect karo
+                const selected = [];
+                document.querySelectorAll('.dropdown-menu input[type="checkbox"]:checked').forEach(c => {
+                    selected.push(c.value);
+                });
+
+                // Display karo
+                document.getElementById('selected-display').textContent =
+                    selected.length > 0 ? selected.join(', ') : 'None';
+
+                console.log('Selected Categories:', selected);
+
+                // Yahan AJAX call karo - Products filter ho jayenge
+                // applyFilters(selected);
+            });
+        });
+
+        // Filter function (tumhara AJAX logic)
+        function applyFilters(categories) {
+            // AJAX request bhejo
+            // Products update karo
+            console.log('Filtering products with:', categories);
+        }
+
+        console.log('✅ Dropdown ready!');
+    </script>
+
+</body>
+
+</html>

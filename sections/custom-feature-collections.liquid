@@ -1,0 +1,338 @@
+{{ 'featured-collection.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'featured-collection.js' | asset_url }}" defer></script>
+
+
+
+  <!-- ----- FEATURED COLLECTION SECTION ------- -->
+  <div class="featured-collection" id="featuredCollection">
+  <div class="page-width">
+    <!-- ---------- SECTION HEADER ------------- -->
+    <div class="section-header">
+      <h2>{{ section.settings.heading }}</h2>
+      <p>{{ section.settings.description }}</p>
+    </div>
+
+    {% assign selected_collection = section.settings.collection %}
+
+    <!-- -------- FILTER BAR - TOP ----------- -->
+    <div class="filter-bar">
+      <!-- Left side - Product count -->
+      <div class="filter-bar-left">
+        <span class="results-count" id="productCount">{{ selected_collection.products_count }} products</span>
+      </div>
+
+      {% comment %} <h1>Print something : {{ collections[section.settings.collection].products }}</h1> {% endcomment %}
+
+      <!-- Right side - Vendor filter dropdown -->
+      <div class="filter-bar-right">
+        {% if section.settings.enable_vendor_filter %}
+          <div class="vendor-filter-wrapper">
+            <div class="custom-dropdown">
+              <!-- Dropdown button -->
+              <button class="dropdown-btn" id="dropdownBtn" type="button">
+                <span id="selectedVendorText">Filter Vendors</span>
+                <span class="dropdown-arrow">▼</span>
+              </button>
+
+              <!-- Dropdown content with vendor checkboxes -->
+              <div class="dropdown-content" id="dropdownContent">
+                <!-- All Vendors option -->
+                <label class="dropdown-item">
+                  <input type="checkbox" class="vendor-checkbox" value="all" checked>
+                  <span>All Vendors</span>
+                </label>
+
+                <!-- Get unique vendors from collection -->
+                {% assign vendors = collections[section.settings.collection].products | map: 'vendor' | uniq %}
+
+                {% comment %} <script> console.log("Print Vendors : {{ vendors | json}} "); </script> {% endcomment %}
+
+                <!-- Loop through each vendor -->
+                {% for vendor in vendors %}
+                  {% comment %} <script> console.log("{{ vendor | handleize}}"); </script> {% endcomment %}
+                  <label class="dropdown-item">
+                    <input type="checkbox" class="vendor-checkbox" value="{{ vendor | handleize }}">
+                    <span>{{ vendor }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+
+<!----------- Line Animation -------------->
+ <div class="line-wrapper">
+      <div class="line" id="line"></div>
+ </div>
+
+
+
+    <!-- ------------ PRODUCTS GRID ------------ -->
+    <div class="collection-wrapper">
+      <div class="selected-collection">
+        <!-- Check if collection is selected -->
+        {% if selected_collection == blank %}
+          <h1 class="msg">Please select a collection.</h1>
+
+          <!-- Check if collection has products -->
+        {% elsif selected_collection.products_count == 0 %}
+          <h1 class="msg">No Product Found</h1>
+
+          <!-- Display products -->
+        {% else %}
+          <!-- Products grid with dynamic styles -->
+          <div
+            class="products-grid"
+            style="
+              --columns:{{ section.settings.products_per_row }};
+              --mobile-columns:{{ section.settings.mobile_columns }};
+              --mobile-image-height:{{ section.settings.mobile_image_height }}px;
+            "
+          >
+            <!-- Loop through products -->
+            {% for product in selected_collection.products limit: section.settings.products_to_show %}
+              <!-- Individual product card -->
+              <div class="product-card" data-vendor="{{ product.vendor | handleize }}">
+                <!-- Product Image Section -->
+                <div class="product-image">
+                  <!-- Sale badge -->
+                  {% if section.settings.enable_sale_badge and product.compare_at_price > product.price %}
+                    {% if product.available %}
+                      <span class="sale-badge">Sale</span>
+                    {% endif %}
+                  {% endif %}
+
+                  <!-- Sold out badge -->
+                  {% unless product.available %}
+                    <span class="soldout-badge">Sold Out</span>
+                  {% endunless %}
+
+                  <!-- Product image -->
+                  {% if product.featured_image %}
+                    <img
+                      src="{{ product.featured_image | image_url: width: 500 }}"
+                      alt="{{ product.title }}"
+                      width="500"
+                      height="500"
+                      class="product-img"
+                      loading="lazy"
+                    >
+                  {% endif %}
+                </div>
+
+                <!-- Product Content Section -->
+                <div class="product-content">
+                  <!-- Vendor name -->
+                  {% if section.settings.enable_vendor_name %}
+                    <p class="vendor">{{ product.vendor }}</p>
+                  {% endif %}
+
+                  <!-- Product title -->
+                  <h3 class="product-title">{{ product.title }}</h3>
+
+                  <!-- Product rating -->
+                  {% if section.settings.enable_rating %}
+                    {% assign rating = product.metafields.custom.rating.value %}
+                    {% if rating %}
+                      <div class="rating">⭐ {{ rating.rating }} / {{ rating.scale_max }}</div>
+                    {% endif %}
+                  {% endif %}
+
+                  <!-- Product price -->
+                  <div class="price">
+                    {% if section.settings.enable_price %}
+                      {% if product.compare_at_price > product.price %}
+                        <span class="compare-price">{{ product.compare_at_price | money }}</span>
+                      {% endif %}
+                      <span class="sale-price">{{ product.price | money }}</span>
+                    {% endif %}
+                  </div>
+
+                  <!-- Add to cart form -->
+                  {% if section.settings.enable_quick_add %}
+                    <form
+                      class="ajax-cart-form"
+                      data-title="{{ product.title }}"
+                      data-image="{{ product.featured_image | image_url: width:500 }}"
+                      data-price="{{ product.price | money }}"
+                      action="{{ routes.cart_add_url }}"
+                    >
+                      <!-- Hidden variant ID input -->
+                      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+
+                      <!-- Hidden variant select for products with variants -->
+                      {% unless product.has_only_default_variant %}
+                        <select class="variant-select" style="display:none;">
+                          {% for variant in product.variants %}
+                            <option
+                              value="{{ variant.id }}"
+                              data-price="{{ variant.price | money }}"
+                              {% unless variant.available %}
+                                disabled
+                              {% endunless %}
+                            >
+                              {{ variant.title }}
+                            </option>
+                          {% endfor %}
+                        </select>
+                      {% endunless %}
+
+                      <!-- Add to cart button -->
+                      {% if product.available %}
+                        {% if product.has_only_default_variant %}
+                          <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+                        {% else %}
+                          <button type="button" class="select-variant-btn add-to-cart-btn">Select Variant</button>
+                        {% endif %}
+                      {% else %}
+                        <button class="add-to-cart-btn sold-out-btn" disabled>Sold Out</button>
+                      {% endif %}
+                      <!-- End add to cart button -->
+                    </form>
+                    <!-- End ajax-cart-form -->
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- ------- POPUPS - RENDER FROM SNIPPETS -------- -->
+{% render 'add-to-cart-pop-up' %}
+
+{% render 'variant-pop-up' %}
+
+
+
+
+
+
+<!-- ---------- SCHEMA DESIGN -------- -->
+{% schema %}
+{
+  "name": "Custom-Collection",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "label": "Heading",
+      "id": "heading",
+      "default": "Featured Collection"
+    },
+    {
+      "type": "textarea",
+      "label": "Description",
+      "id": "description",
+      "default": "Explore our carefully selected collection of premium products with trusted brands and exceptional quality."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "header",
+      "content": "🖥️ Desktop Settings"
+    },
+    {
+      "type": "select",
+      "id": "products_per_row",
+      "label": "Products Per Row (Desktop)",
+      "default": "4",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "📱 Mobile Settings"
+    },
+    {
+      "type": "select",
+      "id": "mobile_columns",
+      "label": "Products Per Row (Mobile)",
+      "default": "2",
+      "options": [
+        { "value": "1", "label": "1 Column" },
+        { "value": "2", "label": "2 Columns" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "mobile_image_height",
+      "label": "Mobile Image Height",
+      "min": 120,
+      "max": 280,
+      "step": 10,
+      "default": 180,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to Show",
+      "min": 1,
+      "max": 24,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "⚙️ Feature Toggles"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_quick_add",
+      "label": "Enable Quick Add",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_vendor_name",
+      "label": "Enable Vendor Name",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_vendor_filter",
+      "label": "Enable Vendor Filter",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_price",
+      "label": "Enable Price",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sale_badge",
+      "label": "Enable Sale Badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_rating",
+      "label": "Enable Rating",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Collection"
+    }
+  ]
+}
+{% endschema %}

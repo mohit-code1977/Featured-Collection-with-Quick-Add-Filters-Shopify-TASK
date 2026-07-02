@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Center Line Fade</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #f5f5f5;
+        font-family: Arial;
+      }
+
+      .wrapper {
+        text-align: center;
+      }
+
+      .line {
+        width: 500px;
+        height: 4px;
+        background: #000;
+        margin: auto;
+
+        /* Initially full line */
+        clip-path: inset(0 0 0 0);
+      }
+
+      button {
+        margin-top: 40px;
+        padding: 12px 30px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="line" id="line"></div>
+
+      <button onclick="runAnimation()">Run Animation</button>
+    </div>
+
+    <script>
+      const line = document.getElementById("line");
+
+      function runAnimation() {
+        line.getAnimations().forEach((a) => a.cancel());
+
+        line.style.clipPath = "inset(0 0 0 0)";
+
+        requestAnimationFrame(() => {
+          line.animate(
+            [
+              {
+                clipPath: "inset(0 0 0 0)",
+              },
+              {
+                clipPath: "inset(0 0 0 100%)",
+              },
+            ],
+            {
+              duration: 2000,
+              easing: "ease-in-out",
+              fill: "forwards",
+            },
+          );
+        });
+      }
+
+      runAnimation();
+    </script>
+  </body>
+</html>

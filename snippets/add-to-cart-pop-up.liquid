@@ -1,0 +1,26 @@
+<!-- ----------- CART POPUP ------------- -->
+<div class="cart-popup-overlay"></div>
+
+<div class="cart-popup">
+  <!-- Close button -->
+  <button class="popup-close">&times;</button>
+
+  <!-- Success message -->
+  <div class="popup-success">✓ Product added to your cart successfully!</div>
+
+  <!-- Product details -->
+  <div class="popup-product">
+    <img id="popup-image" src="#" alt="Img" width="100" height="100">
+
+    <div>
+      <h3 id="popup-title"></h3>
+      <p>Quantity: <span id="popup-qty">1</span></p>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="popup-buttons">
+    <button class="continue-btn">Continue Shopping</button>
+    <a href="{{ routes.cart_url }}" class="goto-cart">Go To Cart</a>
+  </div>
+</div>

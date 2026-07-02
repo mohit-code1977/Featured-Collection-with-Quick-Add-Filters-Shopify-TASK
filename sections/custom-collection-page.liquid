@@ -1,0 +1,358 @@
+{{ 'custom-collection-page.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'filter-collection-products.js' | asset_url}}" defer></script>
+
+<!-- ------- Designing Code --------- -->
+<section 
+  class="custom-collection"
+  style="
+    --columns-desktop: {{ section.settings.columns_desktop }};
+    --grid-gap: {{ section.settings.grid_gap }}px;
+  "
+>
+  <!-- Hero -->
+  {% if section.settings.show_hero %}
+    <section 
+      class="collection-hero" 
+      style="background-image: url('{% if section.settings.custom_hero_image %}{{ section.settings.custom_hero_image | image_url: width: 1600 }}{% elsif collection.image %}{{ collection.image | image_url: width: 1600 }}{% else %}https://picsum.photos/1440/600?random=10{% endif %}');"
+    >
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+        <span class="collection-tag"> {{ section.settings.hero_tag }} </span>
+
+        <h1>{{ collection.title }}</h1>
+
+        <!-- --------- Description ---------- -->
+        {% if collection.description == blank %}
+          <p>
+            Discover modern furniture crafted with premium quality materials and timeless design for every room in your
+            home.
+          </p>
+        {% else %}
+          <p>{{ collection.description }}</p>
+        {% endif %}
+
+        <a href="{{ section.settings.hero_button_link | default: routes.collections_url }}" class="hero-btn">
+          {{ section.settings.hero_button_text }}
+        </a>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- Toolbar -->
+  <section class="collection-toolbar">
+    <!-- --------- Left ToolBar ----------- -->
+    <div class="toolbar-left">
+      <h3>
+        <span id="product-count">
+          {{ collection.products_count }}
+        </span>
+        Products
+      </h3>
+    </div>
+
+    <!-- ------- Search Bar ------- -->
+    <div class="toolbar-right">
+      {% if section.settings.show_clear_filters %}
+        <button class="clear-filters-btn">Clear Filters</button>
+      {% endif %}
+
+      {% if section.settings.show_search %}
+        <input class="search-filter" type="search" placeholder="Search products...">
+      {% endif %}
+
+      <!-- ------- Sort Filter ------- -->
+      {% if section.settings.show_sort %}
+        <select class="sort-filter">
+          <option value="manual">Featured</option>
+          <option value="price-ascending">Price Low to High</option>
+          <option value="price-descending">Price High to Low</option>
+          <option value="created-descending">Latest</option>
+        </select>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="collection-body">
+    <!-- Sidebar -->
+    <!-- ------------ Left Filter Bar --------------- -->
+    <aside class="sidebar">
+      <!-- ------ Categories Filter ------ -->
+      {% if section.settings.show_vendor_filter %}
+        <div class="filter-box">
+          <h3>Vendor Categories</h3>
+
+          {% assign vendors = collection.products | map: 'vendor' | uniq %}
+          <ul>
+            {% for vendor in vendors %}
+              <li>
+                <input
+                  class="vendor-filter"
+                  type="checkbox"
+                  name="vendor"
+                  value="{{ vendor | handleize}}"
+                  id="cat-{{ forloop.index }}"
+                >
+                <label for="cat-{{ forloop.index }}">
+                  {{ vendor }}
+                </label>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <!-- ------ Availability Filter ------ -->
+      {% if section.settings.show_stock_filter %}
+        <div class="filter-box">
+          <h3>Availability</h3>
+
+          <ul>
+            <li>
+              <label for="available">
+                <input class="stock-availability-filter" name="stock" type="radio" value="true" id="available">
+                Stock
+              </label>
+            </li>
+
+            <li>
+              <label for="not-available">
+                <input class="stock-availability-filter" name="stock" type="radio" value="false" id="not-available">
+                Out-Of-Stock
+              </label>
+            </li>
+          </ul>
+        </div>
+      {% endif %}
+
+      <!-- ------ Price ------ -->
+      {% if section.settings.show_price_filter %}
+        <div class="filter-box">
+          <h3>Price</h3>
+
+          <div class="price-range-wrapper">
+            <div class="price-display">
+              <span>Min: <span class="price-min">₹0</span></span>
+              <span>Max: <span class="price-max">₹10000</span></span>
+            </div>
+
+            <input
+              type="range"
+              class="price-min-input"
+              min="0"
+              max="10000"
+              step="100"
+              value="0"
+            >
+
+            <input
+              type="range"
+              class="price-slider"
+              min="0"
+              max="10000"
+              step="100"
+              value="10000"
+            >
+          </div>
+        </div>
+      {% endif %}
+    </aside>
+
+    <!-- --------- All Products Render here ---------- -->
+    <div 
+      id="products-container"
+      data-products-per-page="{{ section.settings.products_per_page }}"
+      data-add-to-cart-text="{{ section.settings.add_to_cart_text }}"
+      data-out-of-stock-text="{{ section.settings.out_of_stock_text }}"
+      data-show-vendor="{{ section.settings.show_vendor_name }}"
+      data-show-compare-price="{{ section.settings.show_compare_price }}"
+      data-show-rating="{{ section.settings.show_rating }}"
+      data-show-sale-badge="{{ section.settings.show_sale_badge }}"
+      data-show-add-to-cart="{{ section.settings.show_add_to_cart }}"
+    >
+      <div class="product-grid" id="product-grid">
+        <!-- Products will be loaded by JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- --------- Pagination ---------- -->
+  <section class="pagination">
+    <div class="pagination-wrapper" id="pagination-wrapper">
+      <!-- Pagination buttons will be added by JavaScript -->
+    </div>
+  </section>
+</section>
+
+<!-- -------- Schema Design --------- -->
+{% schema %}
+{
+  "name": "Custom Collection Page",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout Settings"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 4,
+      "max": 48,
+      "step": 4,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns (Desktop)",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "grid_gap",
+      "label": "Grid gap (px)",
+      "min": 8,
+      "max": 40,
+      "step": 2,
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Hero Section"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_hero",
+      "label": "Show hero banner",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "custom_hero_image",
+      "label": "Custom hero image (overrides collection image)"
+    },
+    {
+      "type": "text",
+      "id": "hero_tag",
+      "label": "Hero tag text",
+      "default": "Premium Collection"
+    },
+    {
+      "type": "text",
+      "id": "hero_button_text",
+      "label": "Hero button text",
+      "default": "Shop Collection"
+    },
+    {
+      "type": "url",
+      "id": "hero_button_link",
+      "label": "Hero button link"
+    },
+    {
+      "type": "header",
+      "content": "Filters"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show search bar",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sort",
+      "label": "Show sort dropdown",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor_filter",
+      "label": "Show vendor filter",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_stock_filter",
+      "label": "Show availability filter",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price_filter",
+      "label": "Show price filter",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_clear_filters",
+      "label": "Show clear filters button",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Product Card Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor_name",
+      "label": "Show vendor name",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_compare_price",
+      "label": "Show compare price",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show product rating",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "Show sale badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_add_to_cart",
+      "label": "Show add to cart button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "add_to_cart_text",
+      "label": "Add to cart button text",
+      "default": "Add To Cart"
+    },
+    {
+      "type": "text",
+      "id": "out_of_stock_text",
+      "label": "Out of stock button text",
+      "default": "Out of Stock"
+    },
+    {
+      "type": "header",
+      "content": "Custom CSS"
+    },
+    {
+      "type": "textarea",
+      "id": "custom_css",
+      "label": "Custom CSS",
+      "info": "Add custom CSS for this section"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Collection Page"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,37 @@
+/*============================================================
+  LINE ANIMATION - LEFT TO RIGHT (FADE OUT)
+  ============================================================*/
+
+/* ------- Line Container (Top Fixed) ------- */
+.line-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: transparent;
+    z-index: 99999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* ------- Line Active (Show) ------- */
+.line-loader-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ------- Line Fill (Width decreases from right) ------- */
+.line-loader-fill {
+    height: 100%;
+    width: 100%;
+    background: #000000;
+    border-radius: 0 2px 2px 0;
+    transition: width 1.5s ease-in-out;  /* Slow and smooth */
+}
+
+/* ------- Line Complete (Width 0 - Fully Gone) ------- */
+.line-loader-fill.complete {
+    width: 0%;
+}

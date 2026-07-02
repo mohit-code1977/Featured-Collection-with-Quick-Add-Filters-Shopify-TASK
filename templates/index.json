@@ -1,0 +1,63 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "featured_collection": {
+      "type": "featured-collection",
+      "disabled": true,
+      "settings": {
+        "collection": "all",
+        "products_to_show": 8,
+        "title": "Featured products",
+        "heading_size": "h2",
+        "description": "",
+        "show_description": false,
+        "description_style": "body",
+        "columns_desktop": 4,
+        "enable_desktop_slider": false,
+        "full_width": false,
+        "show_view_all": true,
+        "view_all_style": "solid",
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": true,
+        "show_vendor": false,
+        "show_rating": false,
+        "quick_add": "none",
+        "columns_mobile": "2",
+        "swipe_on_mobile": false,
+        "padding_top": 44,
+        "padding_bottom": 36
+      }
+    },
+    "custom_feature_collections_Y6rUyD": {
+      "type": "custom-feature-collections",
+      "name": "Custom Collection",
+      "settings": {
+        "heading": "Featured Collection",
+        "description": "Explore our carefully selected collection of premium products with trusted brands and exceptional quality.",
+        "collection": "electronics",
+        "products_per_row": "4",
+        "products_to_show": 8,
+        "enable_quick_add": true,
+        "enable_vendor_name": true,
+        "enable_vendor_filter": true,
+        "enable_price": true,
+        "enable_sale_badge": true,
+        "enable_rating": true
+      }
+    }
+  },
+  "order": [
+    "featured_collection",
+    "custom_feature_collections_Y6rUyD"
+  ]
+}

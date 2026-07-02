@@ -1,0 +1,67 @@
+  <!-- Product Grid -->
+
+  <div class="product-grid">
+    <!-- Card -->
+
+    {% for product in collection.products %}
+      <article
+        class="product-card"
+        data-title="{{ product.title | downcase }}"
+        data-price="{{ product.price }}"
+        data-vendor="{{ product.vendor | downcase }}"
+        data-stock="{{ product.available }}"
+        data-category="{{ product.category }}"
+        data-created="{{ product.created_at | date: '%s' }}"
+      >
+        <!-- ---- Sale Badge ---- -->
+        {% if product.compare_at_price > product.price %}
+          <span class="sale-badge"> Sale </span>
+        {% endif %}
+
+        <!-- ---- Sold Out Badge ----- -->
+        {% unless product.available %}
+          <span class="sold-out-badge"> Sold Out </span>
+        {% endunless %}
+
+        <!-- ------- Product Image ------ -->
+        <div class="product-image">
+          <img
+            src="{{ product.featured_image | image_url: width: 400 }}"
+            alt="{{ product.title }}"
+            height="100"
+            width="100"
+          >
+        </div>
+
+        <div class="product-info">
+          <span class="vendor"> {{ product.vendor }}</span>
+
+          <h3>{{ product.title }}</h3>
+
+          <!-- ------- Rating ------- -->
+          {% if product.metafields.custom.rating != blank %}
+            <div class="rating">
+              <span
+                >Rating: {{ product.metafields.custom.rating.value }}\
+                {{- product.metafields.custom.rating.value.scale_max }}
+              </span>
+            </div>
+          {% endif %}
+
+          <!-- ------ Price ----- -->
+          <div class="price">
+            <span class="old-price"> {{ product.compare_at_price | money }} </span>
+
+            <span class="new-price"> {{ product.price | money }} </span>
+          </div>
+
+          <!-- --------- Handle Button --------- -->
+          {% if product.available %}
+            <button class="cart-btn">Add To Cart</button>
+          {% else %}
+            <button class="cart-btn stock-unavailable" disabled>Add To Cart</button>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>

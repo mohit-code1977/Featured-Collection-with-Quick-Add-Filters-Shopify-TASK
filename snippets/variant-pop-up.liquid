@@ -1,0 +1,51 @@
+<!-- ----- VARIANT POPUP ------ -->
+<div class="variant-popup-overlay"></div>
+
+<div class="variant-popup">
+  <!-- Close button -->
+  <button type="button" class="variant-close">&times;</button>
+
+  <!-- Left side - Product image -->
+  <div class="variant-left">
+    <div class="variant-image-wrapper">
+      <img id="variant-image" src="#" alt="Product Image" width="500" height="500">
+    </div>
+  </div>
+
+  <!-- Right side - Product details -->
+  <div class="variant-right">
+    <!-- Product title -->
+    <h2 id="variant-title"></h2>
+
+    <!-- Product price -->
+    <div class="variant-price-wrapper">
+      <span id="variant-price" class="variant-price"></span>
+    </div>
+
+    <!-- Description -->
+    <p class="variant-desc">Select your preferred product variant and add it to your cart.</p>
+
+    <!-- Variant dropdown -->
+    <div class="variant-field">
+      <label for="popup-variant-select">Choose Variant</label>
+      <div id="variant-options"></div>
+    </div>
+
+    <!-- Quantity selector -->
+    <div class="variant-qty">
+      <label>Quantity</label>
+
+      <div class="qty-box">
+        <button type="button" class="qty-minus">-</button>
+        <input id="popup-qty-input" type="number" min="1" value="1">
+        <button type="button" class="qty-plus">+</button>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="variant-footer">
+      <button type="button" class="variant-add-btn">Add To Cart</button>
+      <button type="button" class="variant-cancel-btn">Continue Shopping</button>
+    </div>
+  </div>
+</div>
