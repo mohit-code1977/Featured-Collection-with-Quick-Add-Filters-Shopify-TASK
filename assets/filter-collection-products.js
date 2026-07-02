@@ -1,4 +1,4 @@
-// -------- GLOBAL STATE --------
+/*-------- GLOBAL STATE --------*/
 let allProducts = [];
 let products = [];
 let originalProducts = [];
@@ -14,7 +14,7 @@ const filters = {
 
 const defaultCollection = window.location.pathname.split('/').pop();
 
-/*---------- 1. GET SETTINGS ----------*/
+/*------------ 1. GET SETTINGS ------------*/
 function getSettings() {
     const container = document.getElementById('products-container');
     if (!container) {
@@ -42,7 +42,7 @@ function getSettings() {
     };
 }
 
-/*----------- 2. GET DOM ELEMENTS - Har baar fresh select karo -----------*/
+/*------------- 2. GET DOM ELEMENTS - Har baar fresh select karo -------------*/
 function getDOMElements() {
     return {
         seachFilter: document.querySelector('.search-filter'),
@@ -62,7 +62,7 @@ function getDOMElements() {
 
 
 
-/*----------- 3. PRICE RANGE SETUP -----------*/
+/*------------- 3. PRICE RANGE SETUP -------------*/
 function setupPriceRange(productList, dom) {
     const { priceSlider, priceMinInput, priceMinDisplay, priceMaxDisplay } = dom;
     if (!priceSlider || !priceMinInput) return;
@@ -88,9 +88,8 @@ function setupPriceRange(productList, dom) {
     if (priceMaxDisplay) priceMaxDisplay.textContent = '₹' + maxPrice;
 }
 
-// ============================================================
-// 4. RENDER PRODUCTS
-// ============================================================
+
+/*----------- 4. RENDER PRODUCTS -----------*/
 function renderProducts(productList) {
     const dom = getDOMElements();
     const settings = getSettings();
@@ -167,7 +166,7 @@ function renderProducts(productList) {
         }
         */
 
-        // Price
+        //---- Price ----
         cardHTML += '<div class="price">';
         if (settings.showComparePrice && comparePrice && price < comparePrice) {
             cardHTML += '<span class="old-price">₹' + comparePrice + '</span>';
@@ -175,7 +174,7 @@ function renderProducts(productList) {
         cardHTML += '<span class="new-price">₹' + price + '</span>';
         cardHTML += '</div>';
 
-        // Add to Cart
+        //---- Add to Cart ----
         if (settings.showAddToCart) {
             cardHTML += '<button class="cart-btn" ' + (!available ? 'disabled' : '') + ' data-variant-id="' + variant.id + '">';
             cardHTML += available ? settings.addToCartText : settings.outOfStockText;
@@ -192,7 +191,7 @@ function renderProducts(productList) {
     applyFilters();
 }
 
-// 5. LOAD PRODUCTS FROM API
+/*----------- 5. LOAD PRODUCTS FROM API -----------*/
 function loadAllProducts() {
     fetch('/collections/' + defaultCollection + '/products.json?limit=250')
         .then(function(response) { return response.json(); })
@@ -207,7 +206,7 @@ function loadAllProducts() {
         });
 }
 
-// 6. APPLY FILTERS
+/*----------- 6. APPLY FILTERS -----------*/
 function applyFilters() {
     var allCards = document.querySelectorAll('.product-card');
     allCards.forEach(function(product) {
@@ -239,7 +238,7 @@ function applyFilters() {
 }
 
 
-// 7. UPDATE PRODUCT COUNT
+/*----------- 7. UPDATE PRODUCT COUNT -----------*/
 function updateProductCount(dom) {
     if (dom.productCount) {
         var visible = document.querySelectorAll('.product-card[style*="display: block"]');
@@ -247,9 +246,7 @@ function updateProductCount(dom) {
     }
 }
 
-// ============================================================
-// 8. APPLY SORTING
-// ============================================================
+/*------------ 8. APPLY SORTING ------------*/
 function applySorting() {
     var dom = getDOMElements();
     var grid = dom.productGrid;
@@ -286,9 +283,7 @@ function applySorting() {
     applyFilters();
 }
 
-// ============================================================
-// 9. PAGINATION
-// ============================================================
+/*------------ 9. PAGINATION ------------*/
 function getVisibleCards() {
     return Array.from(document.querySelectorAll('.product-card')).filter(function(card) {
         return card.dataset.filteredOut !== 'true' && card.style.display !== 'none';
@@ -404,9 +399,7 @@ function updatePagination(dom) {
     showPage(currentPage, settings, dom);
 }
 
-// ============================================================
-// 10. ADD TO CART (Event Delegation)
-// ============================================================
+/*------------ 10. ADD TO CART (Event Delegation) ------------*/
 function setupCartButtons() {
     var dom = getDOMElements();
     var grid = dom.productGrid;
@@ -488,9 +481,7 @@ function showToast(message, type) {
     });
 }
 
-// ============================================================
-// 11. URL FILTERS - SAVE & LOAD
-// ============================================================
+/*------------ 11. URL FILTERS - SAVE & LOAD ------------*/
 function saveFiltersToURL() {
     var urlParams = new URLSearchParams();
     if (filters.search) urlParams.set('search', filters.search);
@@ -547,9 +538,7 @@ function loadFiltersFromURL() {
     setTimeout(function() { applyFilters(); }, 100);
 }
 
-// ============================================================
-// 12. EVENT HANDLERS
-// ============================================================
+/*------------ 12. EVENT HANDLERS ------------*/
 function handleSearch(e) {
     filters.search = e.target.value.toLowerCase().trim();
     applyFilters();
@@ -627,9 +616,7 @@ function handleClearFilters() {
     window.history.pushState({}, '', window.location.pathname);
 }
 
-// ============================================================
-// 13. ATTACH EVENT LISTENERS
-// ============================================================
+/*------------ 13. ATTACH EVENT LISTENERS ------------*/
 function attachEventListeners() {
     var dom = getDOMElements();
 
@@ -669,9 +656,7 @@ function attachEventListeners() {
     }
 }
 
-// ============================================================
-// 14. INITIALIZE
-// ============================================================
+/*------------ 14. INITIALIZE ------------*/
 function init() {
     products = [];
     originalProducts = [];
@@ -688,9 +673,7 @@ function init() {
     attachEventListeners();
 }
 
-// ============================================================
-// 15. EVENTS - Page Load & Section Reload
-// ============================================================
+/*----- 15. EVENTS - Page Load & Section Reload ------*/
 document.addEventListener('DOMContentLoaded', function() {
     init();
 });
