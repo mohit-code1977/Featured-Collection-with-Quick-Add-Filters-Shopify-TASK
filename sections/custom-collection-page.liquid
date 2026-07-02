@@ -2,7 +2,7 @@
 <script src="{{ 'filter-collection-products.js' | asset_url}}" defer></script>
 
 <!-- ------- Designing Code --------- -->
-<section 
+<section
   class="custom-collection"
   style="
     --columns-desktop: {{ section.settings.columns_desktop }};
@@ -11,8 +11,8 @@
 >
   <!-- Hero -->
   {% if section.settings.show_hero %}
-    <section 
-      class="collection-hero" 
+    <section
+      class="collection-hero"
       style="background-image: url('{% if section.settings.custom_hero_image %}{{ section.settings.custom_hero_image | image_url: width: 1600 }}{% elsif collection.image %}{{ collection.image | image_url: width: 1600 }}{% else %}https://picsum.photos/1440/600?random=10{% endif %}');"
     >
       <div class="hero-overlay"></div>
@@ -159,7 +159,7 @@
     </aside>
 
     <!-- --------- All Products Render here ---------- -->
-    <div 
+    <div
       id="products-container"
       data-products-per-page="{{ section.settings.products_per_page }}"
       data-add-to-cart-text="{{ section.settings.add_to_cart_text }}"
