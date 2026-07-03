@@ -42,6 +42,7 @@ function getSettings() {
     };
 }
 
+
 /*------------- 2. GET DOM ELEMENTS - Har baar fresh select karo -------------*/
 function getDOMElements() {
     return {
@@ -67,9 +68,13 @@ function setupPriceRange(productList, dom) {
     const { priceSlider, priceMinInput, priceMinDisplay, priceMaxDisplay } = dom;
     if (!priceSlider || !priceMinInput) return;
 
+    //---- store price of every products ----
     const prices = productList.map(function(p) {
         return Number(p.variants[0].price) || 0;
     });
+
+    // console.log("Print Price : ", prices);
+    
     const minPrice = Math.floor(Math.min.apply(null, prices));
     const maxPrice = Math.ceil(Math.max.apply(null, prices));
 
@@ -286,7 +291,7 @@ function applySorting() {
 /*------------ 9. PAGINATION ------------*/
 function getVisibleCards() {
     return Array.from(document.querySelectorAll('.product-card')).filter(function(card) {
-        return card.dataset.filteredOut !== 'true' && card.style.display !== 'none';
+        return card.dataset.filteredOut !== 'true';
     });
 }
 
