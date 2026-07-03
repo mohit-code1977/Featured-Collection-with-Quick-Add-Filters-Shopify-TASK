@@ -196,6 +196,7 @@ function renderProducts(productList) {
     applyFilters();
 }
 
+
 /*----------- 5. LOAD PRODUCTS FROM API -----------*/
 function loadAllProducts() {
     fetch('/collections/' + defaultCollection + '/products.json?limit=250')
@@ -210,6 +211,7 @@ function loadAllProducts() {
             console.error('Error loading products:', error);
         });
 }
+
 
 /*----------- 6. APPLY FILTERS -----------*/
 function applyFilters() {
@@ -251,6 +253,7 @@ function updateProductCount(dom) {
     }
 }
 
+
 /*------------ 8. APPLY SORTING ------------*/
 function applySorting() {
     var dom = getDOMElements();
@@ -288,6 +291,8 @@ function applySorting() {
     applyFilters();
 }
 
+
+
 /*------------ 9. PAGINATION ------------*/
 function getVisibleCards() {
     return Array.from(document.querySelectorAll('.product-card')).filter(function(card) {
@@ -295,6 +300,8 @@ function getVisibleCards() {
     });
 }
 
+
+/*-------- Show Page --------*/
 function showPage(page, settings, dom) {
     var allCards = document.querySelectorAll('.product-card');
     var filteredCards = getVisibleCards();
@@ -324,6 +331,8 @@ function showPage(page, settings, dom) {
     currentPage = page;
 }
 
+
+/*-------- Created Pagination Buttons --------*/
 function createPaginationButtons(totalPages, settings, dom) {
     var wrapper = dom.paginationWrapper;
     if (!wrapper) return;
@@ -370,6 +379,8 @@ function createPaginationButtons(totalPages, settings, dom) {
     }
 }
 
+
+/*-------- Created Pagination --------*/
 function setupPagination() {
     var settings = getSettings();
     var dom = getDOMElements();
@@ -387,6 +398,8 @@ function setupPagination() {
     showPage(1, settings, dom);
 }
 
+
+/*-------- Update Pagination --------*/
 function updatePagination(dom) {
     var settings = getSettings();
     var filteredCards = getVisibleCards();
@@ -404,6 +417,8 @@ function updatePagination(dom) {
     showPage(currentPage, settings, dom);
 }
 
+
+
 /*------------ 10. ADD TO CART (Event Delegation) ------------*/
 function setupCartButtons() {
     var dom = getDOMElements();
@@ -413,6 +428,8 @@ function setupCartButtons() {
     grid.addEventListener('click', cartClickHandler);
 }
 
+
+/*---------- Cart Handler ------------*/ 
 function cartClickHandler(e) {
     var btn = e.target.closest('.cart-btn');
     if (!btn || btn.disabled) return;
@@ -455,6 +472,8 @@ function cartClickHandler(e) {
     });
 }
 
+
+/*------------ Update Cart Count ----------*/ 
 function updateCartCount() {
     fetch('/cart.js')
         .then(function(response) { return response.json(); })
@@ -467,6 +486,8 @@ function updateCartCount() {
         .catch(function() {});
 }
 
+
+/*------------ Show Toast Message ----------*/ 
 function showToast(message, type) {
     var existing = document.querySelector('.custom-toast');
     if (existing) existing.remove();
@@ -486,7 +507,8 @@ function showToast(message, type) {
     });
 }
 
-/*------------ 11. URL FILTERS - SAVE & LOAD ------------*/
+
+/*------------ 11. URL FILTERS - SAVE & LOAD ----------*/ 
 function saveFiltersToURL() {
     var urlParams = new URLSearchParams();
     if (filters.search) urlParams.set('search', filters.search);
@@ -500,6 +522,8 @@ function saveFiltersToURL() {
     window.history.pushState({}, '', newUrl);
 }
 
+
+/*------------ Load All Filters From URL ----------*/ 
 function loadFiltersFromURL() {
     var dom = getDOMElements();
     var urlParams = new URLSearchParams(window.location.search);
@@ -543,6 +567,7 @@ function loadFiltersFromURL() {
     setTimeout(function() { applyFilters(); }, 100);
 }
 
+
 /*------------ 12. EVENT HANDLERS ------------*/
 function handleSearch(e) {
     filters.search = e.target.value.toLowerCase().trim();
@@ -555,6 +580,8 @@ function handleSort(e) {
     saveFiltersToURL();
 }
 
+
+/*------------ Vendor ------------*/
 function handleVendor(e) {
     if (e.target.checked) {
         if (!filters.vendor.includes(e.target.value)) {
@@ -569,12 +596,14 @@ function handleVendor(e) {
     saveFiltersToURL();
 }
 
+/*------------ Stock Checking ------------*/
 function handleStock(e) {
     filters.stock = e.target.value;
     applyFilters();
     saveFiltersToURL();
 }
 
+/*------------ Handle Maximum Price ------------*/
 function handlePriceMax(e) {
     var value = parseInt(e.target.value);
     filters.price.max = value;
@@ -584,6 +613,7 @@ function handlePriceMax(e) {
     saveFiltersToURL();
 }
 
+/*------------ Handle Minimum Price ------------*/
 function handlePriceMin(e) {
     var value = parseInt(e.target.value) || 0;
     filters.price.min = value;
@@ -593,6 +623,8 @@ function handlePriceMin(e) {
     saveFiltersToURL();
 }
 
+
+/*------------ Clear Filters ------------*/
 function handleClearFilters() {
     var dom = getDOMElements();
 
@@ -620,6 +652,7 @@ function handleClearFilters() {
     applyFilters();
     window.history.pushState({}, '', window.location.pathname);
 }
+
 
 /*------------ 13. ATTACH EVENT LISTENERS ------------*/
 function attachEventListeners() {
@@ -661,6 +694,7 @@ function attachEventListeners() {
     }
 }
 
+
 /*------------ 14. INITIALIZE ------------*/
 function init() {
     products = [];
@@ -677,6 +711,7 @@ function init() {
     loadFiltersFromURL();
     attachEventListeners();
 }
+
 
 /*----- 15. EVENTS - Page Load & Section Reload ------*/
 document.addEventListener('DOMContentLoaded', function() {
