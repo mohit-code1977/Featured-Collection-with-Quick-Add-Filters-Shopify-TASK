@@ -63,40 +63,56 @@
 
       <!-- ------- Sort Filter ------- -->
       {% if section.settings.show_sort %}
-        <select class="sort-filter">
-          <option value="manual">Featured</option>
-          <option value="price-ascending">Price Low to High</option>
-          <option value="price-descending">Price High to Low</option>
-          <option value="created-descending">Latest</option>
-        </select>
+        <form method="get">
+          <select name="sort_by" onchange="this.form.submit()">
+            {% for option in collection.sort_options %}
+              <option
+                value="{{ option.value }}"
+                {% if option.value == collection.sort_by %}
+                  selected
+                {% endif %}
+              >
+                {{ option.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </form>
       {% endif %}
     </div>
   </section>
 
   <section class="collection-body">
     <!-- Sidebar -->
-    <!-- ------------ Left Filter Bar --------------- -->
+
+    <!-- ------------ Left Filter Bar ------------ -->
     <aside class="sidebar">
       <!-- ------ Categories Filter ------ -->
       {% if section.settings.show_vendor_filter %}
         <div class="filter-box">
           <h3>Vendor Categories</h3>
-
-          {% assign vendors = collection.products | map: 'vendor' | uniq %}
           <ul>
-            {% for vendor in vendors %}
-              <li>
-                <input
-                  class="vendor-filter"
-                  type="checkbox"
-                  name="vendor"
-                  value="{{ vendor | handleize}}"
-                  id="cat-{{ forloop.index }}"
-                >
-                <label for="cat-{{ forloop.index }}">
-                  {{ vendor }}
-                </label>
-              </li>
+            <!-- ------ Vendor ----- -->
+            {% for filter in collection.filters %}
+              {% if filter.label == 'Vendor' %}
+                {% for value in filter.values %}
+                  <li>
+                    <label>
+                      <input
+                        class="vendor-filter"
+                        type="checkbox"
+                        name="{{ filter.param_name }}"
+                        value="{{ value.value }}"
+                        id="cat-{{ forloop.index }}"
+                        {% if value.active %}
+                          checked
+                        {% endif %}
+                      >
+                      {{ value.label }}
+                    </label>
+                    <span>({{ value.count }})</span>
+                  </li>
+                {% endfor %}
+              {% endif %}
             {% endfor %}
           </ul>
         </div>
@@ -105,56 +121,73 @@
       <!-- ------ Availability Filter ------ -->
       {% if section.settings.show_stock_filter %}
         <div class="filter-box">
-          <h3>Availability</h3>
-
+          {% comment %} <h3>Availability</h3> {% endcomment %}
           <ul>
-            <li>
-              <label for="available">
-                <input class="stock-availability-filter" name="stock" type="radio" value="true" id="available">
-                Stock
-              </label>
-            </li>
-
-            <li>
-              <label for="not-available">
-                <input class="stock-availability-filter" name="stock" type="radio" value="false" id="not-available">
-                Out-Of-Stock
-              </label>
-            </li>
+            {% for filter in collection.filters %}
+              {% if filter.label == 'Availability' %}
+                <h3>{{ filter.label }}</h3>
+                {% for value in filter.values %}
+                  <li>
+                    <label>
+                      <input
+                        class="vendor-filter"
+                        type="checkbox"
+                        name="{{ filter.param_name }}"
+                        value="{{ value.value }}"
+                        id="cat-{{ forloop.index }}"
+                        {% if value.active %}
+                          checked
+                        {% endif %}
+                      >
+                      {{ value.label }}
+                    </label>
+                    <span>({{ value.count }})</span>
+                  </li>
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
           </ul>
         </div>
       {% endif %}
 
       <!-- ------ Price ------ -->
       {% if section.settings.show_price_filter %}
-        <div class="filter-box">
-          <h3>Price</h3>
+      <div class="filter-box">
 
-          <div class="price-range-wrapper">
-            <div class="price-display">
-              <span>Min: <span class="price-min">₹0</span></span>
-              <span>Max: <span class="price-max">₹10000</span></span>
-            </div>
+  {% for filter in collection.filters %}
+    {% if filter.type == 'price_range' %}
 
-            <input
-              type="range"
-              class="price-min-input"
-              min="0"
-              max="10000"
-              step="100"
-              value="0"
-            >
+      <h3>{{ filter.label }}</h3>
 
-            <input
-              type="range"
-              class="price-slider"
-              min="0"
-              max="10000"
-              step="100"
-              value="10000"
-            >
-          </div>
+      <div class="price-range-wrapper">
+
+        <div class="price-display">
+          <span>Min : ₹0</span>
+          <span>Max : {{ filter.range_max | money }}</span>
         </div>
+
+        <input type="range"
+          class="price-min-input"
+          min="0"
+          max="{{ filter.range_max }}"
+          step="100"
+          value="0"
+        >
+
+        <input type="range"
+          class="price-slider"
+          min="0"
+          max="{{ filter.range_max }}"
+          step="100"
+          value="{{ filter.range_max }}"
+        >
+
+      </div>
+
+    {% endif %}
+  {% endfor %}
+
+</div>
       {% endif %}
     </aside>
 
@@ -171,7 +204,70 @@
       data-show-add-to-cart="{{ section.settings.show_add_to_cart }}"
     >
       <div class="product-grid" id="product-grid">
-        <!-- Products will be loaded by JavaScript -->
+          <!-- Product Grid -->
+
+    {% for product in collection.products %}
+      <article
+        class="product-card"
+        data-title="{{ product.title | downcase }}"
+        data-price="{{ product.price }}"
+        data-vendor="{{ product.vendor | downcase }}"
+        data-stock="{{ product.available }}"
+        data-category="{{ product.category }}"
+        data-created="{{ product.created_at | date: '%s' }}"
+      >
+        <!-- ---- Sale Badge ---- -->
+        {% if product.compare_at_price > product.price %}
+          <span class="sale-badge"> Sale </span>
+        {% endif %}
+
+        <!-- ---- Sold Out Badge ----- -->
+        {% unless product.available %}
+          <span class="sold-out-badge"> Sold Out </span>
+        {% endunless %}
+
+        <!-- ------- Product Image ------ -->
+        <div class="product-image">
+          <img
+            src="{{ product.featured_image | image_url: width: 400 }}"
+            alt="{{ product.title }}"
+            height="100"
+            width="100"
+          >
+        </div>
+
+        <div class="product-info">
+          <span class="vendor"> {{ product.vendor }}</span>
+
+          <h3>{{ product.title }}</h3>
+
+          <!-- ------- Rating ------- -->
+          {% if product.metafields.custom.rating != blank %}
+            <div class="rating">
+              <span>
+                Rating: {{ product.metafields.custom.rating.value }}\
+                {{ product.metafields.custom.rating.value.scale_max }}
+              </span>
+            </div>
+          {% endif %}
+
+          <!-- ------ Price ----- -->
+          <div class="price">
+            <span class="old-price"> {{ product.compare_at_price | money }} </span>
+
+            <span class="new-price"> {{ product.price | money }} </span>
+          </div>
+
+          <!-- --------- Handle Button --------- -->
+          {% if product.available %}
+            <button class="cart-btn">Add To Cart</button>
+          {% else %}
+            <button class="cart-btn stock-unavailable" disabled>Add To Cart</button>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+
       </div>
     </div>
   </section>
@@ -183,7 +279,6 @@
     </div>
   </section>
 </section>
-
 
 <!-- -------- Schema Design --------- -->
 {% schema %}
