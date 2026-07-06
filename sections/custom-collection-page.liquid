@@ -10,10 +10,12 @@
   "
 >
   <!-- Hero -->
+  {% assign hero_image = 'https://picsum.photos/id/1060/536/354?blur=2' %}
+
   {% if section.settings.show_hero %}
     <section
       class="collection-hero"
-      style="background-image: url('{% if section.settings.custom_hero_image %}{{ section.settings.custom_hero_image | image_url: width: 1600 }}{% elsif collection.image %}{{ collection.image | image_url: width: 1600 }}{% else %}https://picsum.photos/1440/600?random=10{% endif %}');"
+      style="background-image: url('{% if section.settings.custom_hero_image %}{{ section.settings.custom_hero_image | image_url: width: 1600 }}{% elsif collection.image %}{{ collection.image | image_url: width: 1600 }}{% else %}{{ hero_image }}{% endif %}');"
     >
       <div class="hero-overlay"></div>
 
@@ -113,16 +115,16 @@
       <!-- ------ Categories Filter ------ -->
       {% if section.settings.show_vendor_filter %}
         <div class="filter-box">
-            <button type="button" class="filter-toggle">
+          <button type="button" class="filter-toggle">
             <span>Vendor</span>
-                <span class="arrow">⌄</span>
+            <span class="arrow">⌄</span>
           </button>
 
           <ul class="filter-content hide">
             <!-- ------ Vendor ----- -->
             {% for filter in collection.filters %}
               {% if filter.label == 'Vendor' %}
-                <!----- Vendor List ----->
+                <!-- --- Vendor List --- -->
                 {% for value in filter.values %}
                   <li>
                     <label>
@@ -149,148 +151,123 @@
 
       <!-- ------ Availability Filter ------ -->
       {% if section.settings.show_stock_filter %}
-      <div class="filter-box">
-
-    {% for filter in collection.filters %}
-        {% if filter.label == "Availability" %}
-
-            <button type="button" class="filter-toggle">
+        <div class="filter-box">
+          {% for filter in collection.filters %}
+            {% if filter.label == 'Availability' %}
+              <button type="button" class="filter-toggle">
                 <span>{{ filter.label }}</span>
                 <span class="arrow">⌄</span>
-            </button>
+              </button>
 
-            <ul class="filter-content hide">
-
+              <ul class="filter-content hide">
                 {% for value in filter.values %}
+                  <li>
+                    <label>
+                      <input
+                        class="availability-filter"
+                        type="checkbox"
+                        name="{{ filter.param_name }}"
+                        value="{{ value.value }}"
+                        {% if value.active %}
+                          checked
+                        {% endif %}
+                      >
 
-                    <li>
+                      {{ value.label }}
+                    </label>
 
-                        <label>
-
-                            <input
-                                class="availability-filter"
-                                type="checkbox"
-                                name="{{ filter.param_name }}"
-                                value="{{ value.value }}"
-                                {% if value.active %}
-                                    checked
-                                {% endif %}
-                            >
-
-                            {{ value.label }}
-
-                        </label>
-
-                        <span>({{ value.count }})</span>
-
-                    </li>
-
+                    <span>({{ value.count }})</span>
+                  </li>
                 {% endfor %}
-
-            </ul>
-
-        {% endif %}
-    {% endfor %}
-
-</div>
+              </ul>
+            {% endif %}
+          {% endfor %}
+        </div>
       {% endif %}
 
       <!-- ------ Price ------ -->
       {% if section.settings.show_price_filter %}
         <div class="filter-box">
-
-    {% for filter in collection.filters %}
-        {% if filter.type == "price_range" %}
-
-            {% assign max_price = filter.range_max | divided_by: 100 %}
-
-            <button type="button" class="filter-toggle">
-                <span>{{ filter.label }}</span>
-                <span class="arrow">⌄</span>
-            </button>
-
-            <div class="filter-content hide">
-
-                <div class="price-range-wrapper">
-
-                    <div class="price-display">
-
-                        <span id="priceMinDisplay">
-                            Min : ₹0
-                        </span>
-
-                        <span id="priceMaxDisplay">
-                            Max : ₹{{ max_price }}
-                        </span>
-
-                    </div>
-
-                    <input
-                        type="range"
-                        name="filter.v.price.gte"
-                        id="priceMin"
-                        min="0"
-                        max="{{ max_price }}"
-                        step="1"
-                        value="0"
-                    >
-
-                    <input
-                        type="range"
-                        name="filter.v.price.lte"
-                        id="priceMax"
-                        min="0"
-                        max="{{ max_price }}"
-                        step="1"
-                        value="{{ max_price }}"
-                    >
-
-                </div>
-
-            </div>
-
-        {% endif %}
-    {% endfor %}
-
-</div>
-        {% comment %} <div class="filter-box">
           {% for filter in collection.filters %}
             {% if filter.type == 'price_range' %}
-              <h3>{{ filter.label }}</h3>
-
               {% assign max_price = filter.range_max | divided_by: 100 %}
 
-              <div class="price-range-wrapper">
-                <div class="price-display">
-                  <span id="priceMinDisplay"> Min : ₹0 </span>
+              <button type="button" class="filter-toggle">
+                <span>{{ filter.label }}</span>
+                <span class="arrow">⌄</span>
+              </button>
 
-                  <span id="priceMaxDisplay"> Max : ₹{{ max_price }} </span>
+              <div class="filter-content hide">
+                <div class="price-range-wrapper">
+                  <div class="price-display">
+                    <span id="priceMinDisplay"> Min : ₹0 </span>
+
+                    <span id="priceMaxDisplay"> Max : ₹{{ max_price }} </span>
+                  </div>
+
+                  <input
+                    type="range"
+                    name="filter.v.price.gte"
+                    id="priceMin"
+                    min="0"
+                    max="{{ max_price }}"
+                    step="1"
+                    value="0"
+                  >
+
+                  <input
+                    type="range"
+                    name="filter.v.price.lte"
+                    id="priceMax"
+                    min="0"
+                    max="{{ max_price }}"
+                    step="1"
+                    value="{{ max_price }}"
+                  >
                 </div>
-
-                <input
-                  type="range"
-                  name="filter.v.price.gte"
-                  id="priceMin"
-                  min="0"
-                  max="{{ max_price }}"
-                  step="1"
-                  value="0"
-                >
-
-                <input
-                  type="range"
-                  name="filter.v.price.lte"
-                  id="priceMax"
-                  min="0"
-                  max="{{ max_price }}"
-                  step="1"
-                  value="{{ max_price }}"
-                >
               </div>
             {% endif %}
           {% endfor %}
-        </div> {% endcomment %}
+        </div>
+        {% comment %}
+          <div class="filter-box">
+            {% for filter in collection.filters %}
+              {% if filter.type == 'price_range' %}
+                <h3>{{ filter.label }}</h3>
 
+                {% assign max_price = filter.range_max | divided_by: 100 %}
+
+                <div class="price-range-wrapper">
+                  <div class="price-display">
+                    <span id="priceMinDisplay"> Min : ₹0 </span>
+
+                    <span id="priceMaxDisplay"> Max : ₹{{ max_price }} </span>
+                  </div>
+
+                  <input
+                    type="range"
+                    name="filter.v.price.gte"
+                    id="priceMin"
+                    min="0"
+                    max="{{ max_price }}"
+                    step="1"
+                    value="0"
+                  >
+
+                  <input
+                    type="range"
+                    name="filter.v.price.lte"
+                    id="priceMax"
+                    min="0"
+                    max="{{ max_price }}"
+                    step="1"
+                    value="{{ max_price }}"
+                  >
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endcomment %}
       {% endif %}
     </aside>
 

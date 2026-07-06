@@ -214,11 +214,14 @@ body {
 .price-display {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
+    flex-direction: column;
+    gap: 7px;
     font-size: 14px;
     color: #555;
     margin-bottom: 10px;
+    /* background-color: red !important; */
 }
+
 
 /* ---------- Price Range Slider Styling ---------- */
 .price-range-wrapper input[type="range"] {
