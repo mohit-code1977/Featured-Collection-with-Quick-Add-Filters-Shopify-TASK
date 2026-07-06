@@ -30,7 +30,7 @@ function applySearching() {
     products.forEach((product) => {
         let visible = true;
 
-        if (filters.search && !product.dataset.title.includes(filters.search)) {
+        if (filters.search && !product.dataset.title.toLowerCase().includes(filters.search)) {
             visible = false;
         }
 

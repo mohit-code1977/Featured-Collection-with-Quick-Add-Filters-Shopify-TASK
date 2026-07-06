@@ -254,7 +254,11 @@
 
                 <!-- --------- Handle Button --------- -->
                 {% if product.available %}
-                  <button class="cart-btn">Add To Cart</button>
+                  <button class="cart-btn"
+                    data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+                  >
+                    Add To Cart
+                  </button>
                 {% else %}
                   <button class="cart-btn stock-unavailable" disabled>Add To Cart</button>
                 {% endif %}
@@ -292,7 +296,6 @@
     </div>
   </section>
 </section>
-
 
 <!-- -------- Schema Design --------- -->
 {% schema %}
