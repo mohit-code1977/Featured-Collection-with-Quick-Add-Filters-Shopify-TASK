@@ -1,0 +1,78 @@
+<!-- ================= VARIANT MODAL ================= -->
+
+<div id="variantModal" class="variant-modal hide">
+  <!-- Overlay -->
+  <div class="variant-overlay"></div>
+
+  <!-- Popup -->
+  <div class="variant-popup">
+    <!-- Close -->
+    <button
+      type="button"
+      class="variant-close"
+      aria-label="Close Popup"
+    >
+      &times;
+    </button>
+
+    <!-- Left -->
+    <div class="variant-left">
+      <img
+        id="popupProductImage"
+        src=""
+        alt="Product"
+        class="popup-product-image"
+        loading="lazy"
+        width="400"
+        height="400"
+      >
+    </div>
+
+    <!-- Right -->
+    <div class="variant-right">
+      <!-- Vendor -->
+      <span id="popupVendor" class="popup-vendor"></span>
+
+      <!-- Title -->
+      <h2 id="popupTitle" class="popup-title"></h2>
+
+      <!-- Price -->
+      <div class="popup-price">
+        <span id="popupComparePrice" class="compare-price"></span>
+        <span id="popupPrice" class="sale-price"></span>
+      </div>
+
+      <!-- Description -->
+      <p id="popupDescription" class="popup-description"></p>
+
+      <!-- Variant Options -->
+      <div id="popupOptions" class="popup-options">
+        <!-- Option Group 1: Color -->
+      </div>
+
+      <!-- Quantity -->
+      <div class="popup-quantity">
+        <label> Quantity </label>
+        <div class="qty-selector">
+          <button type="button" class="qty-minus">−</button>
+          <input
+            id="popupQty"
+            type="number"
+            value="1"
+            min="1"
+            max="999"
+          >
+          <button type="button" class="qty-plus">+</button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="popup-footer">
+        <button type="button" class="popup-add-cart" data-variant-id="">
+    Add To Cart
+</button>
+        <button type="button" class="popup-cancel">Continue Shopping</button>
+      </div>
+    </div>
+  </div>
+</div>

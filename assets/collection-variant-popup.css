@@ -1,0 +1,383 @@
+ /*==============================
+      VARIANT POPUP
+  ==============================*/
+
+  .variant-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  .variant-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .55);
+    backdrop-filter: blur(4px);
+  }
+
+  .variant-popup {
+    position: relative;
+    width: min(900px, 92%);
+    min-height: 520px;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+    z-index: 2;
+    animation: popup .3s ease;
+  }
+
+  @keyframes popup {
+    from {
+      transform: translateY(20px) scale(.95);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  /*==============================
+          CLOSE
+  ==============================*/
+
+  .variant-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: #f5f5f5;
+    font-size: 26px;
+    cursor: pointer;
+    transition: .25s;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .variant-close:hover {
+    background: #111;
+    color: #fff;
+  }
+
+  /*==============================
+          LEFT
+  ==============================*/
+
+  .variant-left {
+    background: #f8f8f8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+  }
+
+  .popup-product-image {
+    width: 100%;
+    max-width: 380px;
+    object-fit: contain;
+  }
+
+  /*==============================
+          RIGHT
+  ==============================*/
+
+  .variant-right {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .popup-vendor {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+  }
+
+  .popup-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .popup-price {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .compare-price {
+    color: #888;
+    text-decoration: line-through;
+  }
+
+  .sale-price {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111;
+  }
+
+  .popup-description {
+    color: #666;
+    line-height: 1.7;
+  }
+
+  /*==============================
+        OPTIONS
+  ==============================*/
+
+  .popup-options {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-group label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .option-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .option-values button {
+    padding: 10px 18px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .25s;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .option-values button:hover {
+    border-color: #111;
+    background: #f5f5f5;
+  }
+
+  .option-values button.active {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+  }
+
+  /*==============================
+          QUANTITY
+  ==============================*/
+
+  .popup-quantity {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .popup-quantity label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .qty-selector {
+    display: flex;
+    width: max-content;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .qty-selector button {
+    width: 45px;
+    border: none;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 22px;
+    transition: .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qty-selector button:hover {
+    background: #e0e0e0;
+  }
+
+  .qty-selector input {
+    width: 60px;
+    border: none;
+    text-align: center;
+    outline: none;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px 0;
+  }
+
+  .qty-selector input::-webkit-outer-spin-button,
+  .qty-selector input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .qty-selector input[type=number] {
+    -moz-appearance: textfield;
+  }
+
+  /*==============================
+          FOOTER
+  ==============================*/
+
+  .popup-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: auto;
+  }
+
+  .popup-add-cart {
+    padding: 14px;
+    border: none;
+    background: #111;
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: .25s;
+  }
+
+  .popup-add-cart:hover {
+    background: #333;
+  }
+
+  .popup-cancel {
+    padding: 14px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: .25s;
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .popup-cancel:hover {
+    background: #f5f5f5;
+  }
+
+  /*==============================
+          HIDE
+  ==============================*/
+
+  .variant-modal.hide {
+    display: none;
+  }
+
+  /*==============================
+        RESPONSIVE
+  ==============================*/
+
+  @media(max-width:768px) {
+    .variant-popup {
+      grid-template-columns: 1fr;
+      max-height: 92vh;
+      overflow: auto;
+    }
+
+    .variant-left {
+      padding: 20px;
+    }
+
+    .popup-product-image {
+      max-width: 260px;
+    }
+
+    .variant-right {
+      padding: 24px;
+      gap: 15px;
+    }
+
+    .popup-title {
+      font-size: 22px;
+    }
+
+    .sale-price {
+      font-size: 22px;
+    }
+
+    .variant-close {
+      top: 12px;
+      right: 12px;
+      width: 38px;
+      height: 38px;
+      font-size: 22px;
+    }
+
+    .option-values button {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+  }
+
+  @media(max-width:480px) {
+    .variant-popup {
+      width: 96%;
+      border-radius: 14px;
+    }
+
+    .variant-right {
+      padding: 18px;
+    }
+
+    .popup-title {
+      font-size: 20px;
+    }
+
+    .sale-price {
+      font-size: 20px;
+    }
+
+    .option-values button {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .qty-selector button {
+      width: 40px;
+      font-size: 18px;
+    }
+
+    .qty-selector input {
+      width: 50px;
+      font-size: 14px;
+    }
+
+    .popup-add-cart,
+    .popup-cancel {
+      padding: 12px;
+      font-size: 14px;
+    }
+  }
