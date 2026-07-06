@@ -5,6 +5,7 @@
     box-sizing: border-box;
 }
 
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: #faf9f8;
@@ -193,8 +194,6 @@ body {
 }
 
 .filter-box ul li {
-    /* display: flex; */
-    /* justify-content: start; */
     padding: 6px 0;
     font-size: 0.95rem;
     cursor: pointer;
@@ -207,25 +206,54 @@ body {
     padding-left: 6px;
 }
 
-
 .price-range-wrapper {
     margin-top: 10px;
 }
 
 .price-display {
     display: flex;
-    /* justify-content: space-between; */
+    justify-content: space-between;
     gap: 20px;
-    font-size: 13px;
+    font-size: 14px;
     color: #555;
-    /* margin-bottom: 8px; */
+    margin-bottom: 10px;
 }
 
-.price-range-wrapper input{
-    height: 5px;
-    background-color: red !important;
+/* ---------- Price Range Slider Styling ---------- */
+.price-range-wrapper input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #d0d0d0;
+    border-radius: 10px;
+    outline: none;
+    margin: 8px 0;
 }
 
+.price-range-wrapper input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #1a1a1a;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.price-range-wrapper input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.price-range-wrapper input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #1a1a1a;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
 
 /* --- Product Grid --- */
 .product-grid {
@@ -434,6 +462,7 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     color: #333;
+    text-decoration: none;
 }
 
 .pagination-btn:hover:not(:disabled):not(.active) {
@@ -495,13 +524,23 @@ body {
     }
 }
 
-/* ---------- NO PRODUCTS ---------- */
-.no-products {
-    grid-column: 1 / -1;
+/* ---------- NO PRODUCTS MESSAGE ---------- */
+#noProductsMessage {
+    display: none;
     text-align: center;
     padding: 60px 20px;
+    grid-column: 1 / -1;
+}
+
+#noProductsMessage h3 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+#noProductsMessage p {
     color: #666;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 /* ---------- RESPONSIVENESS ---------- */
@@ -624,9 +663,4 @@ body {
         font-size: 9px;
         padding: 3px 10px;
     }
-}
-
-/* Fix for price display in filters */
-.price-display span {
-    font-weight: 500;
 }
