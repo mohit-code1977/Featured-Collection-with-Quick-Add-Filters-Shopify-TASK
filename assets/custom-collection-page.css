@@ -600,7 +600,7 @@ body {
     }
 
     .product-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(var(--columns-mobile, 2), 1fr);
         gap: 12px;
     }
 
@@ -647,7 +647,7 @@ body {
 /* Very small screens */
 @media (max-width: 400px) {
     .product-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(var(--columns-mobile, 2), 1fr);
         gap: 10px;
     }
 

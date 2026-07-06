@@ -7,6 +7,7 @@
     class="custom-collection"
     style="
       --columns-desktop: {{ section.settings.columns_desktop }};
+      --columns-mobile: {{ section.settings.columns_mobile }};
       --grid-gap: {{ section.settings.grid_gap }}px;
     "
   >
@@ -21,23 +22,30 @@
         <div class="hero-overlay"></div>
 
         <div class="hero-content">
-          <span class="collection-tag"> {{ section.settings.hero_tag }} </span>
-
-          <h1>{{ collection.title }}</h1>
-
-          <!-- --------- Description ---------- -->
-          {% if collection.description == blank %}
-            <p>
-              Discover modern furniture crafted with premium quality materials and timeless design for every room in your
-              home.
-            </p>
-          {% else %}
-            <p>{{ collection.description }}</p>
+          {% if section.settings.show_hero_tag %}
+            <span class="collection-tag"> {{ section.settings.hero_tag }} </span>
           {% endif %}
 
-          <a href="{{ section.settings.hero_button_link | default: routes.collections_url }}" class="hero-btn">
-            {{ section.settings.hero_button_text }}
-          </a>
+          {% if section.settings.show_hero_title %}
+            <h1>{{ collection.title }}</h1>
+          {% endif %}
+
+          {% if section.settings.show_hero_description %}
+            {% if collection.description == blank %}
+              <p>
+                Discover modern furniture crafted with premium quality materials and timeless design for every room in your
+                home.
+              </p>
+            {% else %}
+              <p>{{ collection.description }}</p>
+            {% endif %}
+          {% endif %}
+
+          {% if section.settings.show_hero_button %}
+            <a href="{{ section.settings.hero_button_link | default: routes.collections_url }}" class="hero-btn">
+              {{ section.settings.hero_button_text }}
+            </a>
+          {% endif %}
         </div>
       </section>
     {% endif %}
@@ -230,45 +238,6 @@
               {% endif %}
             {% endfor %}
           </div>
-          {% comment %}
-            <div class="filter-box">
-              {% for filter in collection.filters %}
-                {% if filter.type == 'price_range' %}
-                  <h3>{{ filter.label }}</h3>
-
-                  {% assign max_price = filter.range_max | divided_by: 100 %}
-
-                  <div class="price-range-wrapper">
-                    <div class="price-display">
-                      <span id="priceMinDisplay"> Min : ₹0 </span>
-
-                      <span id="priceMaxDisplay"> Max : ₹{{ max_price }} </span>
-                    </div>
-
-                    <input
-                      type="range"
-                      name="filter.v.price.gte"
-                      id="priceMin"
-                      min="0"
-                      max="{{ max_price }}"
-                      step="1"
-                      value="0"
-                    >
-
-                    <input
-                      type="range"
-                      name="filter.v.price.lte"
-                      id="priceMax"
-                      min="0"
-                      max="{{ max_price }}"
-                      step="1"
-                      value="{{ max_price }}"
-                    >
-                  </div>
-                {% endif %}
-              {% endfor %}
-            </div>
-          {% endcomment %}
         {% endif %}
       </aside>
 
@@ -280,6 +249,7 @@
         data-show-vendor="{{ section.settings.show_vendor_name }}"
         data-show-compare-price="{{ section.settings.show_compare_price }}"
         data-show-sale-badge="{{ section.settings.show_sale_badge }}"
+        data-show-sold-out-badge="{{ section.settings.show_sold_out_badge }}"
         data-show-add-to-cart="{{ section.settings.show_add_to_cart }}"
       >
         {% paginate collection.products by section.settings.products_per_page %}
@@ -295,13 +265,15 @@
                 data-stock="{{ product.available }}"
               >
                 <!-- ---- Sale Badge ---- -->
-                {% if product.compare_at_price > product.price %}
+                {% if section.settings.show_sale_badge and product.compare_at_price > product.price %}
                   <span class="sale-badge"> Sale </span>
                 {% endif %}
 
                 <!-- ---- Sold Out Badge ----- -->
                 {% unless product.available %}
-                  <span class="sold-out-badge"> Sold Out </span>
+                  {% if section.settings.show_sold_out_badge %}
+                    <span class="sold-out-badge"> Sold Out </span>
+                  {% endif %}
                 {% endunless %}
 
                 <!-- ------- Product Image ------ -->
@@ -323,7 +295,7 @@
                   <h3>{{ product.title }}</h3>
 
                   <!-- ------- Rating ------- -->
-                  {% if product.metafields.custom.rating != blank %}
+                  {% if section.settings.show_rating and product.metafields.custom.rating != blank %}
                     <div class="rating">
                       <span>
                         Rating:
@@ -336,7 +308,7 @@
 
                   <!-- ------ Price ----- -->
                   <div class="price">
-                    {% if product.compare_at_price > product.price %}
+                    {% if section.settings.show_compare_price and product.compare_at_price > product.price %}
                       <span class="old-price">
                         {{ product.compare_at_price | money }}
                       </span>
@@ -426,7 +398,7 @@
     "settings": [
       {
         "type": "header",
-        "content": "Layout Settings"
+        "content": "Desktop Layout"
       },
       {
         "type": "range",
@@ -440,7 +412,7 @@
       {
         "type": "range",
         "id": "columns_desktop",
-        "label": "Columns (Desktop)",
+        "label": "Products per row (Desktop)",
         "min": 2,
         "max": 6,
         "step": 1,
@@ -454,6 +426,19 @@
         "max": 40,
         "step": 2,
         "default": 24
+      },
+      {
+        "type": "header",
+        "content": "Mobile Layout"
+      },
+      {
+        "type": "range",
+        "id": "columns_mobile",
+        "label": "Products per row (Mobile)",
+        "min": 1,
+        "max": 3,
+        "step": 1,
+        "default": 2
       },
       {
         "type": "header",
@@ -471,10 +456,34 @@
         "label": "Custom hero image (overrides collection image)"
       },
       {
+        "type": "checkbox",
+        "id": "show_hero_tag",
+        "label": "Show hero tag text",
+        "default": true
+      },
+      {
         "type": "text",
         "id": "hero_tag",
         "label": "Hero tag text",
         "default": "Premium Collection"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_hero_title",
+        "label": "Show collection title",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_hero_description",
+        "label": "Show collection description",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_hero_button",
+        "label": "Show hero button",
+        "default": true
       },
       {
         "type": "text",
@@ -553,6 +562,12 @@
         "type": "checkbox",
         "id": "show_sale_badge",
         "label": "Show sale badge",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_sold_out_badge",
+        "label": "Show sold out badge",
         "default": true
       },
       {
