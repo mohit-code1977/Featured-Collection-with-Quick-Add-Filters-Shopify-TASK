@@ -10,6 +10,8 @@ function init() {
     bindEvents();
     updateProductCount();
     toggleNoProducts();
+    toggleClearFiltersButton();
+
 }
 
 function cacheDOM() {
@@ -37,6 +39,8 @@ function bindEvents() {
     setupSorting();
     setupClearFilters();
     setupCartButtons();
+
+    setupVendorDropdown();
 }
 
 function setupSearch() {
@@ -70,14 +74,18 @@ function searchProducts(keyword) {
     toggleNoProducts();
 }
 
+
 function updateProductCount() {
     if (!DOM.productCount) return;
 
-    const visible = DOM.productCards.filter(card => {
-        return card.style.display !== "none";
-    });
+    const visible = DOM.productCards.filter(card =>
+        card.style.display !== "none"
+    ).length;
 
-    DOM.productCount.textContent = visible.length;
+    const total = Number(DOM.productCount.dataset.totalProducts);
+
+    DOM.productCount.textContent =
+        `Showing ${visible} of ${total} Products`;
 }
 
 function toggleNoProducts() {
@@ -331,4 +339,75 @@ function setupSorting() {
 
         window.location.href = url.toString();
     });
+}
+
+
+
+
+/*---------- When Filter Select Only Then Clear Filter Button Show -----------*/ 
+function toggleClearFiltersButton() {
+    if (!DOM.clearBtn) return;
+
+    const url = new URL(window.location.href);
+
+    const hasVendorFilter =
+        [...DOM.vendorFilters].some(filter => filter.checked);
+
+    const hasAvailabilityFilter =
+        [...DOM.availabilityFilters].some(filter => filter.checked);
+
+    const hasPriceFilter =
+        (DOM.priceMin && +DOM.priceMin.value > +DOM.priceMin.min) ||
+        (DOM.priceMax && +DOM.priceMax.value < +DOM.priceMax.max);
+
+    const sortValue = url.searchParams.get("sort_by");
+
+    const hasSortFilter =
+        sortValue && sortValue !== "manual";
+
+    const hasActiveFilters =
+        hasVendorFilter ||
+        hasAvailabilityFilter ||
+        hasPriceFilter ||
+        hasSortFilter;
+
+    DOM.clearBtn.classList.toggle("show", hasActiveFilters);
+}
+
+
+
+
+
+/*--------- Filter Dropdown Menu ---------*/ 
+
+function setupVendorDropdown() {
+
+    const toggles = document.querySelectorAll(".filter-toggle");
+
+    toggles.forEach(toggle => {
+
+        const content = toggle.nextElementSibling;
+
+        content.classList.add("hide");
+
+        toggle.addEventListener("click", () => {
+
+            toggle.classList.toggle("active");
+            content.classList.toggle("hide");
+
+        });
+
+    });
+
+    document.querySelectorAll(".filter-box").forEach(box => {
+
+        box.addEventListener("mouseleave", () => {
+
+            box.querySelector(".filter-content").classList.add("hide");
+            box.querySelector(".filter-toggle").classList.remove("active");
+
+        });
+
+    });
+
 }

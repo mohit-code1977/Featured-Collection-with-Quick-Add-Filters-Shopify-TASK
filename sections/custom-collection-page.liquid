@@ -1,7 +1,6 @@
 {{ 'custom-collection-page.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'filter-collection-products.js' | asset_url }}" defer></script>
 
-
 <!-- ------- Designing Code --------- -->
 <section
   class="custom-collection"
@@ -44,11 +43,11 @@
   <section class="collection-toolbar">
     <!-- --------- Left ToolBar ----------- -->
     <div class="toolbar-left">
-      <h3>
-        <span id="product-count">
-          {{ collection.products_count }}
-        </span>
-        Products
+      <h3
+        id="product-count"
+        data-total-products="{{ collection.products_count }}"
+      >
+        Showing {{ collection.products_count }} of {{ collection.all_products_count }} Products
       </h3>
     </div>
 
@@ -59,7 +58,6 @@
       {% endif %}
 
       {% if section.settings.show_search %}
-        
         <input
           class="search-filter"
           id="searchFilter"
@@ -90,7 +88,7 @@
           {% endif %}
 
           {% comment %} <select name="sort_by" onchange="this.form.submit()"> {% endcomment %}
-            <select id="sortSelect" name="sort_by">
+          <select id="sortSelect" name="sort_by">
             {% for option in collection.sort_options %}
               <option
                 value="{{ option.value }}"
@@ -115,11 +113,16 @@
       <!-- ------ Categories Filter ------ -->
       {% if section.settings.show_vendor_filter %}
         <div class="filter-box">
-          <h3>Vendor Categories</h3>
-          <ul>
+            <button type="button" class="filter-toggle">
+            <span>Vendor</span>
+                <span class="arrow">⌄</span>
+          </button>
+
+          <ul class="filter-content hide">
             <!-- ------ Vendor ----- -->
             {% for filter in collection.filters %}
               {% if filter.label == 'Vendor' %}
+                <!----- Vendor List ----->
                 {% for value in filter.values %}
                   <li>
                     <label>
@@ -134,6 +137,7 @@
                       >
                       {{ value.label }}
                     </label>
+
                     <span>({{ value.count }})</span>
                   </li>
                 {% endfor %}
@@ -145,37 +149,111 @@
 
       <!-- ------ Availability Filter ------ -->
       {% if section.settings.show_stock_filter %}
-        <div class="filter-box">
-          <ul>
-            {% for filter in collection.filters %}
-              {% if filter.label == 'Availability' %}
-                <h3>{{ filter.label }}</h3>
+      <div class="filter-box">
+
+    {% for filter in collection.filters %}
+        {% if filter.label == "Availability" %}
+
+            <button type="button" class="filter-toggle">
+                <span>{{ filter.label }}</span>
+                <span class="arrow">⌄</span>
+            </button>
+
+            <ul class="filter-content hide">
+
                 {% for value in filter.values %}
-                  <li>
-                    <label>
-                      <input
-                        class="availability-filter"
-                        type="checkbox"
-                        name="{{ filter.param_name }}"
-                        value="{{ value.value }}"
-                        {% if value.active %}
-                          checked
-                        {% endif %}
-                      >
-                      {{ value.label }}
-                    </label>
-                    <span>({{ value.count }})</span>
-                  </li>
+
+                    <li>
+
+                        <label>
+
+                            <input
+                                class="availability-filter"
+                                type="checkbox"
+                                name="{{ filter.param_name }}"
+                                value="{{ value.value }}"
+                                {% if value.active %}
+                                    checked
+                                {% endif %}
+                            >
+
+                            {{ value.label }}
+
+                        </label>
+
+                        <span>({{ value.count }})</span>
+
+                    </li>
+
                 {% endfor %}
-              {% endif %}
-            {% endfor %}
-          </ul>
-        </div>
+
+            </ul>
+
+        {% endif %}
+    {% endfor %}
+
+</div>
       {% endif %}
 
       <!-- ------ Price ------ -->
       {% if section.settings.show_price_filter %}
         <div class="filter-box">
+
+    {% for filter in collection.filters %}
+        {% if filter.type == "price_range" %}
+
+            {% assign max_price = filter.range_max | divided_by: 100 %}
+
+            <button type="button" class="filter-toggle">
+                <span>{{ filter.label }}</span>
+                <span class="arrow">⌄</span>
+            </button>
+
+            <div class="filter-content hide">
+
+                <div class="price-range-wrapper">
+
+                    <div class="price-display">
+
+                        <span id="priceMinDisplay">
+                            Min : ₹0
+                        </span>
+
+                        <span id="priceMaxDisplay">
+                            Max : ₹{{ max_price }}
+                        </span>
+
+                    </div>
+
+                    <input
+                        type="range"
+                        name="filter.v.price.gte"
+                        id="priceMin"
+                        min="0"
+                        max="{{ max_price }}"
+                        step="1"
+                        value="0"
+                    >
+
+                    <input
+                        type="range"
+                        name="filter.v.price.lte"
+                        id="priceMax"
+                        min="0"
+                        max="{{ max_price }}"
+                        step="1"
+                        value="{{ max_price }}"
+                    >
+
+                </div>
+
+            </div>
+
+        {% endif %}
+    {% endfor %}
+
+</div>
+        {% comment %} <div class="filter-box">
           {% for filter in collection.filters %}
             {% if filter.type == 'price_range' %}
               <h3>{{ filter.label }}</h3>
@@ -211,12 +289,10 @@
               </div>
             {% endif %}
           {% endfor %}
-        </div>
+        </div> {% endcomment %}
+
       {% endif %}
     </aside>
-
-
-    
 
     <!-- --------- All Products Render here ---------- -->
     <div
