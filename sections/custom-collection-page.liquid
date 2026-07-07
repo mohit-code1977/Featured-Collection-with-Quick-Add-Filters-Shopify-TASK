@@ -17,9 +17,11 @@
   {% if section.settings.show_hero %}
     <section
       class="collection-hero"
-      style="background-image: url('{% if section.settings.custom_hero_image %}{{ section.settings.custom_hero_image | image_url: width: 1600 }}{% elsif collection.image %}{{ collection.image | image_url: width: 1600 }}{% else %}{{ hero_image }}{% endif %}');"
+      {% if section.settings.enable_hero_image %}
+        style="background-image: url('{% if section.settings.custom_hero_image %}{{ section.settings.custom_hero_image | image_url: width: 1600 }}{% elsif collection.image %}{{ collection.image | image_url: width: 1600 }}{% else %}{{ hero_image }}{% endif %}');"
+      {% endif %}
     >
-      <div class="hero-overlay"></div>
+      <div class="hero-overlay" style="background-color:red;"></div>
 
       <div class="hero-content">
         {% if section.settings.show_hero_tag %}
@@ -77,50 +79,76 @@
           aria-label="Search products"
         >
       {% endif %}
-
-      <!-- ------- Sort Filter ------- -->
-      {% if section.settings.show_sort %}
-        <form method="get" id="sortForm">
-          <!-- Preserve current filters in hidden inputs -->
-          {% for filter in collection.filters %}
-            {% for value in filter.values %}
-              {% if value.active %}
-                <input type="hidden" name="{{ filter.param_name }}" value="{{ value.value }}">
-              {% endif %}
-            {% endfor %}
-          {% endfor %}
-
-          {% if request.params.filter.v.price.gte %}
-            <input type="hidden" name="filter.v.price.gte" value="{{ request.params.filter.v.price.gte }}">
-          {% endif %}
-
-          {% if request.params.filter.v.price.lte %}
-            <input type="hidden" name="filter.v.price.lte" value="{{ request.params.filter.v.price.lte }}">
-          {% endif %}
-
-          {% comment %} <select name="sort_by" onchange="this.form.submit()"> {% endcomment %}
-          <select id="sortSelect" name="sort_by">
-            {% for option in collection.sort_options %}
-              <option
-                value="{{ option.value }}"
-                {% if option.value == collection.sort_by %}
-                  selected
-                {% endif %}
-              >
-                {{ option.name }}
-              </option>
-            {% endfor %}
-          </select>
-        </form>
-      {% endif %}
     </div>
   </section>
+
+  <!-- Mobile Actions Row (Only visible on Mobile/Tablet) -->
+  <div class="mobile-actions-row">
+    <!-- 1. Mobile Filter Toggle Button -->
+    <button type="button" class="mobile-filter-toggle" id="mobileFilterToggleBtn">
+      <span class="icon">⚙️</span>
+      <span>Filters</span>
+      <span class="arrow">⌄</span>
+    </button>
+
+    <!-- 2. Mobile Search Wrapper with Slide-Out Input -->
+    <div class="mobile-search-wrapper" id="mobileSearchWrapper">
+      <button type="button" class="mobile-search-toggle" id="mobileSearchToggleBtn" aria-label="Search">🔍</button>
+      <input class="search-filter mobile-search-input" 
+        id="searchFilterMobile"
+        type="search"
+        placeholder="Search..."
+        aria-label="Search products"
+      >
+    </div>
+
+    <!-- 3. Mobile Clear Filters Button -->
+    <button class="clear-filters-btn" id="clearFiltersBtnMobile">Clear</button>
+  </div>
 
   <section class="collection-body">
     <!-- Sidebar -->
 
     <!-- ------------ Left Filter Bar ------------ -->
     <aside class="sidebar">
+      <!-- ------ Sort By Filter ------ -->
+      {% if section.settings.show_sort %}
+        <div class="filter-box">
+          <div class="price-range-wrapper" style="margin-top: 10px;">
+            <form method="get" id="sortForm" style="margin: 0; width: 100%;">
+              <!-- Preserve current filters in hidden inputs -->
+              {% for filter in collection.filters %}
+                {% for value in filter.values %}
+                  {% if value.active %}
+                    <input type="hidden" name="{{ filter.param_name }}" value="{{ value.value }}">
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+
+              {% if request.params.filter.v.price.gte %}
+                <input type="hidden" name="filter.v.price.gte" value="{{ request.params.filter.v.price.gte }}">
+              {% endif %}
+
+              {% if request.params.filter.v.price.lte %}
+                <input type="hidden" name="filter.v.price.lte" value="{{ request.params.filter.v.price.lte }}">
+              {% endif %}
+
+              <select id="sortSelect" name="sort_by" style="width: 85%; padding: 10px; border: 1px solid #e0dedc; border-radius: 6px; background-color: #fff; font-size: 0.9rem; cursor: pointer;">
+                {% for option in collection.sort_options %}
+                  <option
+                    value="{{ option.value }}"
+                    {% if option.value == collection.sort_by %}
+                      selected
+                    {% endif %}
+                  >
+                    {{ option.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </form>
+          </div>
+        </div>
+      {% endif %}
       <!-- ------ Categories Filter ------ -->
       {% if section.settings.show_vendor_filter %}
         <div class="filter-box">
@@ -200,6 +228,8 @@
           {% for filter in collection.filters %}
             {% if filter.type == 'price_range' %}
               {% assign max_price = filter.range_max | divided_by: 100 %}
+              {% assign current_min = filter.min_value.value | divided_by: 100 | default: 0 %}
+              {% assign current_max = filter.max_value.value | divided_by: 100 | default: max_price %}
 
               <button type="button" class="filter-toggle">
                 <span>{{ filter.label }}</span>
@@ -209,9 +239,9 @@
               <div class="filter-content hide">
                 <div class="price-range-wrapper">
                   <div class="price-display">
-                    <span id="priceMinDisplay"> Min : ₹0 </span>
+                    <span id="priceMinDisplay"> Min : ₹{{ current_min }} </span>
 
-                    <span id="priceMaxDisplay"> Max : ₹{{ max_price }} </span>
+                    <span id="priceMaxDisplay"> Max : ₹{{ current_max }} </span>
                   </div>
 
                   <input
@@ -221,7 +251,7 @@
                     min="0"
                     max="{{ max_price }}"
                     step="1"
-                    value="0"
+                    value="{{ current_min }}"
                   >
 
                   <input
@@ -231,7 +261,7 @@
                     min="0"
                     max="{{ max_price }}"
                     step="1"
-                    value="{{ max_price }}"
+                    value="{{ current_max }}"
                   >
                 </div>
               </div>
@@ -358,49 +388,47 @@
 
         <!-- --------- Pagination ---------- -->
         {% unless section.settings.enable_infinite_scroll %}
-        <section class="pagination">
-          <div class="pagination-wrapper">
-            {% if paginate.previous %}
-              <a class="pagination-btn" href="{{ paginate.previous.url }}"> Previous </a>
-            {% endif %}
-
-            {% for part in paginate.parts %}
-              {% if part.is_link %}
-                <a class="pagination-btn" href="{{ part.url }}">
-                  {{ part.title }}
-                </a>
-
-              {% else %}
-                <span class="pagination-btn active">
-                  {{ part.title }}
-                </span>
+          <section class="pagination">
+            <div class="pagination-wrapper">
+              {% if paginate.previous %}
+                <a class="pagination-btn" href="{{ paginate.previous.url }}"> Previous </a>
               {% endif %}
-            {% endfor %}
 
-            {% if paginate.next %}
-              <a class="pagination-btn pagination-next" href="{{ paginate.next.url }}"> Next </a>
-            {% endif %}
-          </div>
-        </section>
+              {% for part in paginate.parts %}
+                {% if part.is_link %}
+                  <a class="pagination-btn" href="{{ part.url }}">
+                    {{ part.title }}
+                  </a>
+
+                {% else %}
+                  <span class="pagination-btn active">
+                    {{ part.title }}
+                  </span>
+                {% endif %}
+              {% endfor %}
+
+              {% if paginate.next %}
+                <a class="pagination-btn pagination-next" href="{{ paginate.next.url }}"> Next </a>
+              {% endif %}
+            </div>
+          </section>
         {% endunless %}
 
-
-
-{% if section.settings.enable_infinite_scroll %}
-  <div
-    id="infinite-scroll-trigger"
-    data-current-page="{{ paginate.current_page }}"
-    data-total-pages="{{ paginate.pages }}"
-    {% if paginate.next %}
-      data-next-url="{{ paginate.next.url }}"
-    {% endif %}
-  >
-    <div class="infinite-scroll-loader" style="display:none;">
-      <div class="loader-spinner"></div>
-      <span>Loading more products...</span>
-    </div>
-  </div>
-{% endif %}
+        {% if section.settings.enable_infinite_scroll %}
+          <div
+            id="infinite-scroll-trigger"
+            data-current-page="{{ paginate.current_page }}"
+            data-total-pages="{{ paginate.pages }}"
+            {% if paginate.next %}
+              data-next-url="{{ paginate.next.url }}"
+            {% endif %}
+          >
+            <div class="infinite-scroll-loader" style="display:none;">
+              <div class="loader-spinner"></div>
+              <span>Loading more products...</span>
+            </div>
+          </div>
+        {% endif %}
       {% endpaginate %}
     </div>
   </section>
@@ -410,7 +438,6 @@
   {% render 'collection-variant-popup' %}
   {% comment %} </div> {% endcomment %}
 </section>
-
 
 <!-- -------- Schema Design --------- -->
 {% schema %}
@@ -481,6 +508,12 @@
       "type": "image_picker",
       "id": "custom_hero_image",
       "label": "Custom hero image (overrides collection image)"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_hero_image",
+      "label": "Enable Hero Image",
+      "default": true
     },
     {
       "type": "checkbox",

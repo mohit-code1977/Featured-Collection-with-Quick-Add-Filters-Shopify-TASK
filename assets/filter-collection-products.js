@@ -31,6 +31,11 @@ function cacheDOM() {
     DOM.priceMaxDisplay = document.getElementById("priceMaxDisplay");
     DOM.clearBtn = document.getElementById("clearFiltersBtn");
     DOM.sortForm = document.getElementById("sortForm");
+    DOM.mobileToggleBtn = document.getElementById("mobileFilterToggleBtn");
+    DOM.mobileSearchWrapper = document.getElementById("mobileSearchWrapper");
+    DOM.mobileSearchToggleBtn = document.getElementById("mobileSearchToggleBtn");
+    DOM.mobileSearchInput = document.getElementById("searchFilterMobile");
+    DOM.mobileClearBtn = document.getElementById("clearFiltersBtnMobile");
 
     // Products
     DOM.productGrid = document.getElementById("product-grid");
@@ -53,7 +58,7 @@ function cacheDOM() {
     DOM.popupOptions = document.getElementById("popupOptions");
     DOM.popupQty = document.getElementById("popupQty");
     DOM.currentProduct = null;
-    
+
     // Products container
     DOM.productsContainer = document.getElementById("products-container");
 
@@ -65,7 +70,7 @@ function cacheDOM() {
     if (DOM.infiniteTrigger) {
         hasNextPage = !!DOM.infiniteTrigger.dataset.nextUrl;
     }
-    
+
 }
 
 /*------------ Bind All Event Listeners ----------*/
@@ -79,9 +84,11 @@ function bindEvents() {
     setupCartButtons();
     setupVendorDropdown();
     setupVariantPopup();
-    
+    setupMobileFilterToggle();
+    setupMobileSearchToggle();
+
     /*--- Pagination Click Event Delegation ---*/
-    document.addEventListener("click", function(e) {
+    document.addEventListener("click", function (e) {
         const link = e.target.closest(".pagination-btn");
         if (link) {
             e.preventDefault();
@@ -93,10 +100,10 @@ function bindEvents() {
     });
 
 
-/*--------- Handle Infinite Scroll --------*/ 
+    /*--------- Handle Infinite Scroll --------*/
     if (DOM.enableInfiniteScroll) {
-    setupInfiniteScroll();
-}
+        setupInfiniteScroll();
+    }
 }
 
 
@@ -128,7 +135,7 @@ async function fetchProducts(url) {
     try {
         const grid = document.getElementById("product-grid");
         const container = document.getElementById("products-container");
-        
+
         if (grid) {
             grid.style.opacity = "0.5";
             grid.style.pointerEvents = "none";
@@ -144,6 +151,9 @@ async function fetchProducts(url) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
+        // Update URL immediately so that subsequent setup functions read the new URL query parameters
+        window.history.pushState({}, "", url);
+
         // Product grid update
         const oldGrid = document.getElementById("product-grid");
         const newGrid = doc.getElementById("product-grid");
@@ -153,7 +163,7 @@ async function fetchProducts(url) {
             oldGrid.innerHTML = newGrid.innerHTML;
             DOM.productCards = [...document.querySelectorAll(".product-card")];
             console.log("Products updated:", DOM.productCards.length);
-            
+
             // Force grid visible
             oldGrid.style.display = "grid";
             oldGrid.style.opacity = "1";
@@ -175,6 +185,35 @@ async function fetchProducts(url) {
             }
         }
 
+        // ★ Sidebar filters update — sync counts, checked states, price range
+        const newSidebar = doc.querySelector(".sidebar");
+        const oldSidebar = document.querySelector(".sidebar");
+        if (newSidebar && oldSidebar) {
+            oldSidebar.innerHTML = newSidebar.innerHTML;
+
+            // Re-cache filter DOM elements (purane elements ab dead hain)
+            DOM.vendorFilters = document.querySelectorAll(".vendor-filter");
+            DOM.availabilityFilters = document.querySelectorAll(".availability-filter");
+            DOM.priceMin = document.getElementById("priceMin");
+            DOM.priceMax = document.getElementById("priceMax");
+            DOM.priceMinDisplay = document.getElementById("priceMinDisplay");
+            DOM.priceMaxDisplay = document.getElementById("priceMaxDisplay");
+
+            // Re-bind filter events on new elements
+            setupVendorFilters();
+            setupAvailabilityFilters();
+            await setupPriceFilter();
+            setupVendorDropdown();
+        }
+
+        // ★ Sort form update — resets sort dropdown and syncs hidden inputs
+        const newSortForm = doc.getElementById("sortForm");
+        const oldSortForm = document.getElementById("sortForm");
+        if (newSortForm && oldSortForm) {
+            oldSortForm.innerHTML = newSortForm.innerHTML;
+            setupSorting();
+        }
+
         // Product count update
         const newCount = doc.getElementById("product-count");
         if (newCount) {
@@ -194,8 +233,7 @@ async function fetchProducts(url) {
             }
         }
 
-        // URL update
-        window.history.pushState({}, "", url);
+
 
         // Re-bind everything
         setupCartButtons();
@@ -226,6 +264,9 @@ async function fetchProducts(url) {
         if (DOM.searchInput) {
             DOM.searchInput.value = "";
         }
+        if (DOM.mobileSearchInput) {
+            DOM.mobileSearchInput.value = "";
+        }
         isSearchActive = false;
         originalGridHTML = null;
         allProductsCache = null; // Invalidate cache since filters changed
@@ -247,7 +288,7 @@ async function fetchProducts(url) {
     } catch (error) {
         console.error("Error:", error);
         showToast("Failed to load products", "error");
-        
+
         const grid = document.getElementById("product-grid");
         if (grid) {
             grid.style.opacity = "1";
@@ -281,11 +322,11 @@ async function fetchAllCollectionProducts() {
     let page = 1;
 
     while (true) {
-        const res = await fetch(`/collections/${handle}/products.json?limit=250&page=${page}`);
+        const res = await fetch(`/collections/${handle}/products.json?limit=50&page=${page}`);
         const data = await res.json();
         if (!data.products || data.products.length === 0) break;
         all = all.concat(data.products);
-        if (data.products.length < 250) break;
+        if (data.products.length < 50) break;
         page++;
     }
 
@@ -313,8 +354,9 @@ function buildCardHTML(product) {
     const variantCount = product.variants.length;
     const imgSrc = (product.images && product.images[0]?.src) || "";
     const hasSale = comparePrice > price && price > 0;
+    const priceInCents = Math.round(price * 100);
 
-    let html = `<article class="product-card" data-title="${product.title.toLowerCase()}" data-price="${variant.price}" data-vendor="${product.vendor.toLowerCase()}" data-stock="${available}">`;
+    let html = `<article class="product-card" data-title="${product.title.toLowerCase()}" data-price="${priceInCents}" data-vendor="${product.vendor.toLowerCase()}" data-stock="${available}">`;
 
     // Sale badge (respects show_sale_badge setting)
     if (showSaleBadge && hasSale) {
@@ -362,24 +404,51 @@ function buildCardHTML(product) {
     return html;
 }
 
+/*------------ Setup Mobile Filter Toggle ----------*/
+function setupMobileFilterToggle() {
+    if (!DOM.mobileToggleBtn) return;
+    const sidebar = document.querySelector(".sidebar");
+    if (!sidebar) return;
+    // Button click hone par 'active' class add/remove (toggle) hogi
+
+    DOM.mobileToggleBtn.addEventListener("click", function() {
+        this.classList.toggle("active"); // Button ki active class
+        sidebar.classList.toggle("active");  //Sidebar ki active class
+    });
+}
+
+/*------------ Setup Mobile Search Toggle ----------*/
+function setupMobileSearchToggle() {
+    if (!DOM.mobileSearchToggleBtn || !DOM.mobileSearchWrapper) return;
+    
+    DOM.mobileSearchToggleBtn.addEventListener("click", function() {
+        DOM.mobileSearchToggleBtn.classList.toggle("active");
+        DOM.mobileSearchWrapper.classList.toggle("active");
+        
+        if (DOM.mobileSearchWrapper.classList.contains("active") && DOM.mobileSearchInput) {
+            DOM.mobileSearchInput.focus();
+        }
+    });
+}
+
 /*------------ Setup Search Input with Debounce ----------*/
 function setupSearch() {
-    if (!DOM.searchInput) {
-        console.error("Search input not found!");
-        return;
-    }
-    console.log("Search input found");
+    const searchInputs = [DOM.searchInput, DOM.mobileSearchInput].filter(Boolean);
+    if (searchInputs.length === 0) return;
 
-    // Pre-fetch all products on focus for faster search
-    DOM.searchInput.addEventListener("focus", () => fetchAllCollectionProducts(), { once: true });
-
-    let timer;
-    DOM.searchInput.addEventListener("input", function () {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            const keyword = this.value.trim().toLowerCase();
-            searchProducts(keyword);
-        }, 300);
+    searchInputs.forEach(input => {
+        input.addEventListener("focus", () => fetchAllCollectionProducts(), { once: true });
+        
+        let timer;
+        input.addEventListener("input", function () {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                const keyword = this.value.trim().toLowerCase();
+                // Sync both input fields values
+                searchInputs.forEach(inp => { if (inp !== this) inp.value = this.value; });
+                searchProducts(keyword);
+            }, 300);
+        });
     });
 }
 
@@ -397,6 +466,13 @@ async function searchProducts(keyword) {
             DOM.productCards = [...document.querySelectorAll(".product-card")];
             const pagination = document.querySelector(".pagination-wrapper");
             if (pagination) pagination.style.display = "";
+
+            // Re-show infinite scroll trigger if setting is enabled
+            if (DOM.enableInfiniteScroll && DOM.infiniteTrigger) {
+                DOM.infiniteTrigger.style.display = "";
+                setupInfiniteScroll();
+            }
+
             isSearchActive = false;
             updateProductCount();
             toggleNoProducts();
@@ -415,8 +491,47 @@ async function searchProducts(keyword) {
     try {
         const products = await fetchAllCollectionProducts();
 
-        // Filter by keyword (title only)
-        const matched = products.filter(p => {
+        // Filter the fetched products based on active sidebar filters
+        let filteredProducts = products;
+
+        // 1. Vendor Filter
+        const activeVendors = [...DOM.vendorFilters]
+            .filter(input => input.checked)
+            .map(input => input.value.toLowerCase().trim());
+        if (activeVendors.length > 0) {
+            filteredProducts = filteredProducts.filter(p =>
+                activeVendors.includes(p.vendor.toLowerCase().trim())
+            );
+        }
+
+        // 2. Availability Filter
+        const activeAvailability = [...DOM.availabilityFilters]
+            .filter(input => input.checked)
+            .map(input => input.value.trim()); // "1" or "0"
+        if (activeAvailability.length > 0) {
+            filteredProducts = filteredProducts.filter(p => {
+                const available = p.variants.some(v => v.available);
+                const showInStock = activeAvailability.includes("1");
+                const showOutOfStock = activeAvailability.includes("0");
+                if (showInStock && showOutOfStock) return true;
+                if (showInStock) return available;
+                if (showOutOfStock) return !available;
+                return true;
+            });
+        }
+
+        // 3. Price Filter
+        if (DOM.priceMin && DOM.priceMax) {
+            const minPrice = Number(DOM.priceMin.value);
+            const maxPrice = Number(DOM.priceMax.value);
+            filteredProducts = filteredProducts.filter(p => {
+                const price = parseFloat(p.variants[0]?.price) || 0;
+                return price >= minPrice && price <= maxPrice;
+            });
+        }
+
+        // 4. Filter by keyword (title only)
+        const matched = filteredProducts.filter(p => {
             const title = p.title.toLowerCase();
             return title.includes(keyword);
         });
@@ -430,9 +545,17 @@ async function searchProducts(keyword) {
         const pagination = document.querySelector(".pagination-wrapper");
         if (pagination) pagination.style.display = "none";
 
+        // Hide infinite scroll trigger during search
+        if (DOM.infiniteTrigger) {
+            DOM.infiniteTrigger.style.display = "none";
+        }
+        if (infiniteScrollObserver) {
+            infiniteScrollObserver.disconnect();
+        }
+
         // Update count
         if (DOM.productCount) {
-            DOM.productCount.textContent = `Showing ${matched.length} of ${products.length} Products`;
+            DOM.productCount.textContent = `Showing ${matched.length} of ${filteredProducts.length} Products`;
         }
         toggleNoProducts();
 
@@ -546,33 +669,105 @@ function setupAvailabilityFilters() {
 }
 
 /*------------ Setup Price Range Slider Filter ----------*/
-function setupPriceFilter() {
+async function setupPriceFilter() {
     if (!DOM.priceMin || !DOM.priceMax) return;
 
     const url = new URL(window.location.href);
-    const min = Number(url.searchParams.get("filter.v.price.gte")) || 0;
-    const max = Number(url.searchParams.get("filter.v.price.lte")) || Number(DOM.priceMax.max);
+    let minLimit = Number(DOM.priceMin.getAttribute("min")) || 0;
+    let maxLimit = Number(DOM.priceMax.getAttribute("max")) || 10000;
 
-    DOM.priceMin.value = min;
-    DOM.priceMax.value = max;
+    // Dynamically calculate limits based on the products matching active vendor and stock filters
+    try {
+        const products = await fetchAllCollectionProducts();
+        if (products && products.length > 0) {
+            const activeVendors = [...DOM.vendorFilters]
+                .filter(input => input.checked)
+                .map(input => input.value.toLowerCase().trim());
+
+            const activeAvailability = [...DOM.availabilityFilters]
+                .filter(input => input.checked)
+                .map(input => input.value.trim());
+
+            let subset = products;
+            if (activeVendors.length > 0) {
+                subset = subset.filter(p => activeVendors.includes(p.vendor.toLowerCase().trim()));
+            }
+            if (activeAvailability.length > 0) {
+                subset = subset.filter(p => {
+                    const available = p.variants.some(v => v.available);
+                    const showInStock = activeAvailability.includes("1");
+                    const showOutOfStock = activeAvailability.includes("0");
+                    if (showInStock && showOutOfStock) return true;
+                    if (showInStock) return available;
+                    if (showOutOfStock) return !available;
+                    return true;
+                });
+            }
+
+            if (subset.length > 0) {
+                const prices = subset.map(p => parseFloat(p.variants[0]?.price) || 0);
+                minLimit = Math.floor(Math.min(...prices));
+                maxLimit = Math.ceil(Math.max(...prices));
+            }
+        }
+    } catch (err) {
+        console.error("Error setting dynamic price limits:", err);
+    }
+
+    // Set the inputs min and max attributes
+    DOM.priceMin.min = minLimit;
+    DOM.priceMin.max = maxLimit;
+    DOM.priceMax.min = minLimit;
+    DOM.priceMax.max = maxLimit;
+
+    // Read current value from URL parameters
+    let minVal = Number(url.searchParams.get("filter.v.price.gte"));
+    let maxVal = Number(url.searchParams.get("filter.v.price.lte"));
+
+    // If URL parameters are not set, default them to the current min/max limits
+    if (url.searchParams.get("filter.v.price.gte") === null || isNaN(minVal)) {
+        minVal = minLimit;
+    }
+    if (url.searchParams.get("filter.v.price.lte") === null || isNaN(maxVal)) {
+        maxVal = maxLimit;
+    }
+
+    // Clamp values to the current limits
+    minVal = Math.max(minLimit, Math.min(maxLimit, minVal));
+    maxVal = Math.max(minLimit, Math.min(maxLimit, maxVal));
+
+    DOM.priceMin.value = minVal;
+    DOM.priceMax.value = maxVal;
     updatePriceDisplay();
 
-    DOM.priceMin.addEventListener("input", () => {
-        if (+DOM.priceMin.value > +DOM.priceMax.value) {
-            DOM.priceMin.value = DOM.priceMax.value;
-        }
-        updatePriceDisplay();
-    });
+    // Re-bind events (remove then add to prevent duplicates)
+    DOM.priceMin.removeEventListener("input", handleMinInput);
+    DOM.priceMax.removeEventListener("input", handleMaxInput);
+    DOM.priceMin.removeEventListener("change", handlePriceChange);
+    DOM.priceMax.removeEventListener("change", handlePriceChange);
 
-    DOM.priceMax.addEventListener("input", () => {
-        if (+DOM.priceMax.value < +DOM.priceMin.value) {
-            DOM.priceMax.value = DOM.priceMin.value;
-        }
-        updatePriceDisplay();
-    });
+    DOM.priceMin.addEventListener("input", handleMinInput);
+    DOM.priceMax.addEventListener("input", handleMaxInput);
+    DOM.priceMin.addEventListener("change", handlePriceChange);
+    DOM.priceMax.addEventListener("change", handlePriceChange);
+}
 
-    DOM.priceMin.addEventListener("change", applyFilters);
-    DOM.priceMax.addEventListener("change", applyFilters);
+function handleMinInput() {
+    if (+DOM.priceMin.value > +DOM.priceMax.value) {
+        DOM.priceMin.value = DOM.priceMax.value;
+    }
+    updatePriceDisplay();
+}
+
+function handleMaxInput() {
+    if (+DOM.priceMax.value < +DOM.priceMin.value) {
+        DOM.priceMax.value = DOM.priceMin.value;
+    }
+    updatePriceDisplay();
+}
+
+function handlePriceChange() {
+    applyFilters();
 }
 
 /*------------ Update Price Range Display Labels ----------*/
@@ -587,8 +782,8 @@ function updatePriceDisplay() {
 
 /*------------ Apply All Active Filters and Fetch Filtered Products ----------*/
 function applyFilters(e) {
-       if (e) e.preventDefault();
-       hasNextPage = true;
+    if (e) e.preventDefault();
+    hasNextPage = true;
     const url = new URL(window.location.href);
 
     // Remove existing filter params
@@ -624,18 +819,20 @@ function applyFilters(e) {
         url.searchParams.set("sort_by", sortSelect.value);
     }
 
-    
+
     fetchProducts(url.toString());
 
 }
 
 /*------------ Setup Clear All Filters Button ----------*/
 function setupClearFilters() {
-    if (!DOM.clearBtn) return;
-    DOM.clearBtn.addEventListener("click", function(e) {
-        e.preventDefault();
-        const url = new URL(window.location.origin + window.location.pathname);
-        fetchProducts(url.toString());
+    const clearBtns = [DOM.clearBtn, DOM.mobileClearBtn].filter(Boolean);
+    clearBtns.forEach(btn => {
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            const url = new URL(window.location.origin + window.location.pathname);
+            fetchProducts(url.toString());
+        });
     });
 }
 
@@ -643,7 +840,7 @@ function setupClearFilters() {
 function setupSorting() {
     const sortSelect = document.getElementById("sortSelect");
     if (!sortSelect) return;
-    sortSelect.addEventListener("change", function(e) {
+    sortSelect.addEventListener("change", function (e) {
         const url = new URL(window.location.href);
         url.searchParams.set("sort_by", this.value);
         url.searchParams.delete("page");
@@ -656,20 +853,19 @@ function setupSorting() {
 
 /*------------ Toggle Clear Filters Button Visibility ----------*/
 function toggleClearFiltersButton() {
-    if (!DOM.clearBtn) return;
     const url = new URL(window.location.href);
     const hasVendorFilter = [...DOM.vendorFilters].some(filter => filter.checked);
     const hasAvailabilityFilter = [...DOM.availabilityFilters].some(filter => filter.checked);
     const minVal = Number(DOM.priceMin?.min) || 0;
-const maxVal = Number(DOM.priceMax?.max) || 0;
-const hasPriceFilter = (DOM.priceMin && +DOM.priceMin.value > minVal) ||
-                       (DOM.priceMax && +DOM.priceMax.value < maxVal);
-    // const hasPriceFilter = (DOM.priceMin && +DOM.priceMin.value > +DOM.priceMin.min) ||
-    //                       (DOM.priceMax && +DOM.priceMax.value < +DOM.priceMax.max);
+    const maxVal = Number(DOM.priceMax?.max) || 0;
+    const hasPriceFilter =
+        (DOM.priceMin && +DOM.priceMin.value > minVal) || (DOM.priceMax && +DOM.priceMax.value < maxVal);
     const sortValue = url.searchParams.get("sort_by");
     const hasSortFilter = sortValue && sortValue !== "manual";
     const hasActiveFilters = hasVendorFilter || hasAvailabilityFilter || hasPriceFilter || hasSortFilter;
-    DOM.clearBtn.classList.toggle("show", hasActiveFilters);
+    
+    const clearBtns = [DOM.clearBtn, DOM.mobileClearBtn].filter(Boolean);
+    clearBtns.forEach(btn => btn.classList.toggle("show", hasActiveFilters));
 }
 
 /*------------ Setup Filter Dropdown Toggle (Expand/Collapse) ----------*/
@@ -715,7 +911,7 @@ function renderVariantOptions(product) {
             btn.dataset.optionIndex = index;
             btn.dataset.value = value;
             if (i === 0) btn.classList.add("active");
-            btn.addEventListener("click", function() {
+            btn.addEventListener("click", function () {
                 const siblings = this.closest(".option-values").querySelectorAll("button");
                 siblings.forEach(b => b.classList.remove("active"));
                 this.classList.add("active");
@@ -819,35 +1015,35 @@ function setupVariantPopup() {
     if (DOM.variantClose) DOM.variantClose.addEventListener("click", closeVariantPopup);
     if (DOM.variantOverlay) DOM.variantOverlay.addEventListener("click", closeVariantPopup);
     if (DOM.popupCancel) DOM.popupCancel.addEventListener("click", closeVariantPopup);
-    
+
     const qtyMinus = document.querySelector(".qty-minus");
     const qtyPlus = document.querySelector(".qty-plus");
-    
+
     if (qtyMinus) {
-        qtyMinus.addEventListener("click", function() {
+        qtyMinus.addEventListener("click", function () {
             let val = parseInt(DOM.popupQty.value, 10) || 1;
             if (val > 1) DOM.popupQty.value = val - 1;
         });
     }
     if (qtyPlus) {
-        qtyPlus.addEventListener("click", function() {
+        qtyPlus.addEventListener("click", function () {
             let val = parseInt(DOM.popupQty.value, 10) || 1;
             const max = parseInt(DOM.popupQty.max, 10) || 999;
             if (val < max) DOM.popupQty.value = val + 1;
         });
     }
     if (DOM.popupQty) {
-        DOM.popupQty.addEventListener("change", function() {
+        DOM.popupQty.addEventListener("change", function () {
             let val = parseInt(this.value, 10);
             if (isNaN(val) || val < 1) this.value = 1;
             const max = parseInt(this.max, 10) || 999;
             if (val > max) this.value = max;
         });
     }
-    
+
     const addToCartPopup = document.querySelector(".popup-add-cart");
     if (addToCartPopup) {
-        addToCartPopup.addEventListener("click", function() {
+        addToCartPopup.addEventListener("click", function () {
             const variantId = this.dataset.variantId;
             const quantity = parseInt(DOM.popupQty.value, 10) || 1;
             if (!variantId) {
@@ -857,8 +1053,8 @@ function setupVariantPopup() {
             addToCartWithQuantity(variantId, quantity);
         });
     }
-    
-    document.addEventListener("keydown", function(e) {
+
+    document.addEventListener("keydown", function (e) {
         if (e.key === "Escape" && !DOM.variantModal.classList.contains("hide")) {
             closeVariantPopup();
         }

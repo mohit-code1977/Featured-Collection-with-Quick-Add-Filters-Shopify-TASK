@@ -38,6 +38,7 @@ body {
     position: absolute;
     inset: 0;
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+    /* background-color: red !important; */
     z-index: 1;
 }
 
@@ -279,6 +280,14 @@ body {
     flex-direction: column;
     border: none;
 }
+
+
+/*------- Search Filter --------*/
+.search-filter{
+    background-color: red;
+}
+
+
 
 .product-card:hover {
     transform: translateY(-6px);
@@ -857,4 +866,158 @@ body {
         /* margin-bottom: 20px; */
     }
 
+}
+
+/* ---------- Mobile Actions Row (Horizontal Line) ---------- */
+.mobile-actions-row {
+    display: none; /* Desktop par hidden rahega */
+}
+
+/* Mobile Search Wrapper Styles */
+.mobile-search-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.mobile-search-toggle {
+    background: #ffffff;
+    border: 1px solid #e0dedc;
+    border-radius: 8px;
+    width: 42px;
+    height: 42px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.mobile-search-toggle.active {
+    background: #ffffff;
+    color: #ffffff;
+    border-color: #00000030;
+}
+
+/* Input Field by default collapse (0 width) rahegi */
+.mobile-search-input {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    height: 42px;
+    border-radius: 8px;
+    background: #ffffff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Click hone par input expand (160px width) hoga */
+.mobile-search-wrapper.active .mobile-search-input {
+    width: 160px;
+    opacity: 1;
+    padding: 0 12px;
+    border: 1px solid #e0dedc;
+    margin-left: 8px;
+}
+
+/* Mobile Filter Toggle Styles */
+.mobile-filter-toggle {
+    display: none; /* Desktop par hidden rahega */
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 16px;
+    background: #ffffff;
+    border: 1px solid #e0dedc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1a1a1a;
+    cursor: pointer;
+    margin: 15px 0;
+    transition: all 0.3s ease;
+}
+
+.mobile-filter-toggle:hover {
+    background: #f7f7f7;
+    border-color: #1a1a1a;
+}
+
+.mobile-filter-toggle .arrow {
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.mobile-filter-toggle.active .arrow {
+    transform: rotate(180deg);
+}
+
+/* Responsive Layout Overrides */
+@media (max-width: 992px) {
+    .mobile-actions-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+        margin: 10px 0;
+        margin-top: -40px !important;
+    }
+
+    /* Hide desktop search input and desktop clear button on mobile */
+    .toolbar-right #searchFilter,
+    .toolbar-right #clearFiltersBtn {
+        display: none !important;
+    }
+
+    .mobile-filter-toggle {
+        display: flex;
+        margin: 0 !important;
+        flex: 1; /* Filter button bachi hui saari space cover karega */
+        height: 42px;
+        box-sizing: border-box;
+    }
+
+    /* Clear button by default hide rahega aur filter active hone par hi show hoga */
+    #clearFiltersBtnMobile {
+        display: none;
+        margin: 0 !important;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 8px;
+        box-sizing: border-box;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #clearFiltersBtnMobile.show {
+        display: flex;
+    }
+
+    .sidebar {
+        display: none !important; /* Mobile par by default hide rahega */
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px;
+        background: #fcfcfc;
+        border: 1px solid #e8e6e4;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        position: static;
+    }
+    .sidebar.active {
+        display: grid !important; /* Open hone par grid layout */
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none !important; /* Mobile layout list overrides */
+    }
+    .sidebar.active {
+        display: flex !important; /* Click hone par open list */
+    }
 }
