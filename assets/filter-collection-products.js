@@ -1,5 +1,8 @@
 "use strict";
 
+let isLoading = false;
+let hasNextPage = true;
+let infiniteScrollObserver = null;
 /*------------ Global DOM Cache Object ----------*/
 const DOM = {};
 
@@ -53,6 +56,16 @@ function cacheDOM() {
     
     // Products container
     DOM.productsContainer = document.getElementById("products-container");
+
+    // Infinity Scroll
+    DOM.enableInfiniteScroll = DOM.productsContainer?.dataset.infiniteScroll === "true";
+    DOM.infiniteTrigger = document.getElementById("infinite-scroll-trigger");
+
+    // Read initial pagination state from trigger element
+    if (DOM.infiniteTrigger) {
+        hasNextPage = !!DOM.infiniteTrigger.dataset.nextUrl;
+    }
+    
 }
 
 /*------------ Bind All Event Listeners ----------*/
@@ -78,7 +91,37 @@ function bindEvents() {
             }
         }
     });
+
+
+/*--------- Handle Infinite Scroll --------*/ 
+    if (DOM.enableInfiniteScroll) {
+    setupInfiniteScroll();
 }
+}
+
+
+function setupInfiniteScroll() {
+    if (!DOM.infiniteTrigger) return;
+
+    // Disconnect previous observer if exists (prevents duplicates after AJAX)
+    if (infiniteScrollObserver) {
+        infiniteScrollObserver.disconnect();
+    }
+
+    infiniteScrollObserver = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !isLoading && hasNextPage) {
+            fetchMoreProducts();
+        }
+    }, {
+        rootMargin: '200px' // Start loading 200px before trigger is visible
+    });
+
+    infiniteScrollObserver.observe(DOM.infiniteTrigger);
+}
+
+
+
 
 /*------------ Fetch Products via AJAX (Pagination, Filters, Sort) ----------*/
 async function fetchProducts(url) {
@@ -159,6 +202,25 @@ async function fetchProducts(url) {
         updateProductCount();
         toggleNoProducts();
         toggleClearFiltersButton();
+
+        // Re-initialize infinite scroll if enabled
+        if (DOM.enableInfiniteScroll) {
+            const newTrigger = doc.getElementById("infinite-scroll-trigger");
+            if (DOM.infiniteTrigger && newTrigger) {
+                // Update trigger data attributes from response
+                if (newTrigger.dataset.nextUrl) {
+                    DOM.infiniteTrigger.dataset.nextUrl = newTrigger.dataset.nextUrl;
+                    hasNextPage = true;
+                } else {
+                    delete DOM.infiniteTrigger.dataset.nextUrl;
+                    hasNextPage = false;
+                }
+                DOM.infiniteTrigger.dataset.currentPage = newTrigger.dataset.currentPage || "1";
+                DOM.infiniteTrigger.dataset.totalPages = newTrigger.dataset.totalPages || "1";
+                // Re-observe
+                setupInfiniteScroll();
+            }
+        }
 
         // Reset search state on filter/pagination change
         if (DOM.searchInput) {
@@ -321,6 +383,8 @@ function setupSearch() {
     });
 }
 
+
+
 /*------------ Search Products by Title Across All Collection Products ----------*/
 async function searchProducts(keyword) {
     const grid = DOM.productGrid;
@@ -378,6 +442,79 @@ async function searchProducts(keyword) {
 
     grid.style.opacity = "1";
 }
+
+
+
+/*------------ Infinity Scroll Handling -----------*/
+async function fetchMoreProducts() {
+    if (isLoading || !hasNextPage) return;
+
+    isLoading = true;
+
+    // Show loading spinner
+    const loader = DOM.infiniteTrigger?.querySelector('.infinite-scroll-loader');
+    if (loader) loader.style.display = 'flex';
+
+    try {
+        // Get next page URL from trigger element's data attribute
+        const nextUrl = DOM.infiniteTrigger?.dataset.nextUrl;
+        if (!nextUrl) {
+            hasNextPage = false;
+            return;
+        }
+
+        // Fetch next page
+        const response = await fetch(nextUrl, {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+
+        if (!response.ok) throw new Error("Failed to load products");
+
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        // Get new products from response
+        const newGrid = doc.getElementById("product-grid");
+
+        if (!newGrid || newGrid.children.length === 0) {
+            hasNextPage = false;
+            return;
+        }
+
+        // Append new products to existing grid
+        DOM.productGrid.insertAdjacentHTML("beforeend", newGrid.innerHTML);
+
+        // Update cached product cards
+        DOM.productCards = [...document.querySelectorAll(".product-card")];
+
+        // Update product count
+        updateProductCount();
+        toggleNoProducts();
+
+        // Check if there's a next page in the response
+        const newTrigger = doc.getElementById("infinite-scroll-trigger");
+        if (newTrigger && newTrigger.dataset.nextUrl) {
+            // Update trigger with new pagination data
+            DOM.infiniteTrigger.dataset.nextUrl = newTrigger.dataset.nextUrl;
+            DOM.infiniteTrigger.dataset.currentPage = newTrigger.dataset.currentPage;
+            DOM.infiniteTrigger.dataset.totalPages = newTrigger.dataset.totalPages;
+        } else {
+            // No more pages
+            hasNextPage = false;
+            delete DOM.infiniteTrigger.dataset.nextUrl;
+        }
+
+    } catch (error) {
+        console.error("Infinite scroll error:", error);
+    } finally {
+        isLoading = false;
+        if (loader) loader.style.display = 'none';
+    }
+}
+
+
+
 
 /*------------ Update Visible Product Count Display ----------*/
 function updateProductCount() {
@@ -451,6 +588,7 @@ function updatePriceDisplay() {
 /*------------ Apply All Active Filters and Fetch Filtered Products ----------*/
 function applyFilters(e) {
        if (e) e.preventDefault();
+       hasNextPage = true;
     const url = new URL(window.location.href);
 
     // Remove existing filter params
@@ -509,6 +647,9 @@ function setupSorting() {
         const url = new URL(window.location.href);
         url.searchParams.set("sort_by", this.value);
         url.searchParams.delete("page");
+
+        hasNextPage = true;
+
         fetchProducts(url.toString());
     });
 }
@@ -789,11 +930,36 @@ async function addToCartWithQuantity(variantId, quantity) {
 async function updateCartCount() {
     try {
         const cart = await fetch("/cart.js").then(res => res.json());
-        document.querySelectorAll(".cart-count").forEach(count => {
-            count.textContent = cart.item_count;
-            count.style.display = cart.item_count ? "inline-flex" : "none";
+        const itemCount = cart.item_count;
+
+        // Update Dawn theme's cart-count-bubble elements
+        document.querySelectorAll(".cart-count-bubble").forEach(bubble => {
+            const countSpan = bubble.querySelector("span[aria-hidden='true']");
+            if (countSpan) {
+                countSpan.textContent = itemCount;
+            }
+            bubble.style.display = itemCount > 0 ? "" : "none";
         });
-    } catch (error) {}
+
+        // If cart-count-bubble doesn't exist yet (cart was empty), create it
+        if (itemCount > 0 && document.querySelectorAll(".cart-count-bubble").length === 0) {
+            const cartLink = document.getElementById("cart-icon-bubble");
+            if (cartLink) {
+                const bubble = document.createElement("div");
+                bubble.className = "cart-count-bubble";
+                bubble.innerHTML = `<span aria-hidden="true">${itemCount}</span>`;
+                cartLink.appendChild(bubble);
+            }
+        }
+
+        // Also support any custom .cart-count elements if they exist
+        document.querySelectorAll(".cart-count").forEach(count => {
+            count.textContent = itemCount;
+            count.style.display = itemCount ? "inline-flex" : "none";
+        });
+    } catch (error) {
+        console.error("Failed to update cart count:", error);
+    }
 }
 
 /*------------ Show Toast Notification ----------*/
@@ -808,8 +974,10 @@ function showToast(message, type = "success") {
 }
 
 /*------------ Setup Add to Cart Button Click Handlers ----------*/
+let cartButtonsBound = false;
 function setupCartButtons() {
-    if (!DOM.productGrid) return;
+    if (!DOM.productGrid || cartButtonsBound) return;
+    cartButtonsBound = true;
     DOM.productGrid.addEventListener("click", (e) => {
         const btn = e.target.closest(".cart-btn");
         if (!btn || btn.disabled) return;
